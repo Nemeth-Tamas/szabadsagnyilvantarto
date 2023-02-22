@@ -4,7 +4,7 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
 
 const MainNavbar = () => {
-  const {theme, user} = useContext(ThemeContext)
+  const {theme, changeTheme} = useContext(ThemeContext)
 
   return (
     <>
