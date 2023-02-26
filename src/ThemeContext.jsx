@@ -4,7 +4,6 @@ export const ThemeContext = React.createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState("light")
-  const [user, setUser] = useState("")
 
   const loadThemeFromStorage = () => {
     const loadedTheme = localStorage.getItem('theme');
@@ -30,7 +29,7 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, changeTheme, user, setUser }} >
+    <ThemeContext.Provider value={{ theme, changeTheme }} >
       {children}
     </ThemeContext.Provider>
   )
