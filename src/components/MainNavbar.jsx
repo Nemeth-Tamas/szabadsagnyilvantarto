@@ -3,11 +3,13 @@ import { Button, Container, Form, Nav, Navbar } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
 import { getUserData, logout } from '../appwrite';
+import { useNavigate } from 'react-router';
 
 const MainNavbar = () => {
   const {theme, changeTheme} = useContext(ThemeContext);
   const [themeButton, setThemeButton] = useState("Világos");
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const switchTheme = () => {
     if (theme == "light") {
@@ -32,6 +34,7 @@ const MainNavbar = () => {
       })
       .catch((error) => {
         setUser(null);
+        navigate('/login');
         console.log(error);
       });
   }, []);
@@ -50,12 +53,12 @@ const MainNavbar = () => {
               <LinkContainer to="/messages">
                 <Nav.Link>Üzenetek</Nav.Link>
               </LinkContainer>
-              {user.prefs.perms.includes("irodavezeto.approve") ? (
+              {user?.prefs.perms.includes("irodavezeto.approve") ? (
                 <LinkContainer to="/requests">
                   <Nav.Link>Kérelmek</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {user.prefs.perms.includes("irodavezeto.list_own") || user.prefs.perms.includes("jegyzo.list_all") ? (
+              {user?.prefs.perms.includes("irodavezeto.list_own") || user?.prefs.perms.includes("jegyzo.list_all") ? (
                 <LinkContainer to="/users">
                   <Nav.Link>Felhasználók</Nav.Link>
                 </LinkContainer>

@@ -4,11 +4,14 @@ import { ThemeContext } from '../ThemeContext';
 import { getUserData } from '../appwrite';
 import client from '../appwrite';
 import { useNavigate } from 'react-router-dom';
+import { CalendarContainer } from './CalendarContainer';
+import Calendar from 'react-calendar';
 
 const Home = () => {
   const {theme} = useContext(ThemeContext);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const [selectedDates, setSelectedDates] = useState([]);
 
   useEffect(() => {
     getUserData()
@@ -21,6 +24,44 @@ const Home = () => {
         console.log(error);
       });
   }, []);
+
+  const handleDateClick = (date) => {
+    date.setHours(3, 0, 0, 0);
+    setSelectedDates((prevSelectedDates) => {
+      const dateString = date.toISOString().split('T')[0];
+      return prevSelectedDates.includes(dateString)
+        ? prevSelectedDates.filter((d) => d !== dateString)
+        : [...prevSelectedDates, dateString];
+    });
+  }
+
+  const titleClassName = ({ date, view }) => {
+    if (view === 'month') {
+      date.setHours(3, 0, 0, 0);
+      const dateString = date.toISOString().split('T')[0];
+      let classes = "";
+      if (selectedDates.includes(dateString)) {
+        classes += "selected-day";
+      }
+
+      if (dateString === new Date().toISOString().split('T')[0]) {
+        classes += " current-day";
+      }
+      return classes;
+    }
+  }
+
+  const testClick = (date, event) => {
+    console.log(date);
+    console.log(event);
+    console.log(selectedDates);
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(selectedDates);
+    setSelectedDates([]);
+  }
 
   return (
     
@@ -42,7 +83,15 @@ const Home = () => {
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
               <Card.Text>
-                
+                <CalendarContainer $dark={theme == "dark"}>
+                  <Calendar
+                    onClickDay={testClick}
+                    onChange={handleDateClick}
+                    tileClassName={titleClassName}
+                    value={null}
+                  />
+                </CalendarContainer>
+                <button type="button" className='btn btn-success mt-3' onClick={handleSubmit}>Küldés</button>
               </Card.Text>
             </Card.Body>
           </Card>

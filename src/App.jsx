@@ -18,7 +18,6 @@ function App() {
       })
       .catch((error) => {
         setUser(null);
-        navigate('/login');
         console.log(error);
       });
   }, []);
