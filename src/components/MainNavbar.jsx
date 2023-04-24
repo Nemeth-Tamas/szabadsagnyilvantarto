@@ -2,12 +2,12 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Button, Container, Form, Nav, Navbar } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { UserContext } from '../UserContext';
+import { getUserData, logout } from '../appwrite';
 
 const MainNavbar = () => {
   const {theme, changeTheme} = useContext(ThemeContext);
-  const {isLoggedIn, logout} = useContext(UserContext);
   const [themeButton, setThemeButton] = useState("Világos");
+  const [user, setUser] = useState(null);
 
   const switchTheme = () => {
     if (theme == "light") {
@@ -25,7 +25,16 @@ const MainNavbar = () => {
     } else {
       setThemeButton("Világos");
     }
-  }, [])
+
+    getUserData()
+      .then((account) => {
+        setUser(account);
+      })
+      .catch((error) => {
+        setUser(null);
+        console.log(error);
+      });
+  }, []);
 
   return (
     <>
@@ -38,15 +47,25 @@ const MainNavbar = () => {
               <LinkContainer to="/">
                 <Nav.Link>Főoldal</Nav.Link>
               </LinkContainer>
-              <LinkContainer to="/profile">
-                <Nav.Link>Profile</Nav.Link>
+              <LinkContainer to="/messages">
+                <Nav.Link>Üzenetek</Nav.Link>
               </LinkContainer>
+              {user.prefs.perms.includes("irodavezeto.approve") ? (
+                <LinkContainer to="/requests">
+                  <Nav.Link>Kérelmek</Nav.Link>
+                </LinkContainer>
+              ) : (<></>)}
+              {user.prefs.perms.includes("irodavezeto.list_own") || user.prefs.perms.includes("jegyzo.list_all") ? (
+                <LinkContainer to="/users">
+                  <Nav.Link>Felhasználók</Nav.Link>
+                </LinkContainer>
+              ) : (<></>)}
             </Nav>
             <Form className='d-flex'>
               <Button variant='outline-info' onClick={switchTheme}>{themeButton}</Button>
             </Form>
             <Nav className='px-2'>
-              {isLoggedIn ? (
+              {user != null ? (
                 <Button variant='outline-primary' onClick={logout}>Kijelentkezés</Button>
               ) : (
                 <LinkContainer to="/login">

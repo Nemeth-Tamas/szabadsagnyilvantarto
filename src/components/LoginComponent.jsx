@@ -1,11 +1,10 @@
 import React, { useContext, useState } from 'react'
 import { Alert, Button, Card, Container, Form } from 'react-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { UserContext } from '../UserContext';
+import { login } from "../appwrite";
 import { useNavigate } from 'react-router-dom';
 
 const LoginComponent = () => {
-  const {login} = useContext(UserContext);
   const {theme} = useContext(ThemeContext);
   const [loginError, setLoginError] = useState(false);
   const navigate = useNavigate();
@@ -19,12 +18,15 @@ const LoginComponent = () => {
   }
 
   const handleLogin = (username, password) => {
-    try {
-      let success = login(username, password);
+    login(username, password)
+    .then(account => {
+      console.log(account);
       navigate('/');
-    } catch (error) {
+    })
+    .catch(error => {
+      console.log(error);
       setLoginError(true);
-    }
+    })
   }
 
   return (
