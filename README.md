@@ -1,4 +1,4 @@
-# payedleavetracker
+# szabadsagnylvantarto
 ## A software for keeping track of users leave's and give them the ability to request time off.
 Used resources:
  - https://react-bootstrap.netlify.app/
