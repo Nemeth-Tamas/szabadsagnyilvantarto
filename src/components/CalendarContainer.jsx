@@ -82,6 +82,33 @@ export const CalendarContainer = styled.div`
     box-shadow: inset 4px 4px 4px 0px rgba(0,0,0,0.4) !important;
   }
 
+  .selected-day-sz {
+    background-color: #6c757d !important;
+    box-shadow: inset 4px 4px 4px 0px rgba(0,0,0,0.4) !important;
+  }
+
+  .selected-day-t {
+    background-color: red !important;
+    box-shadow: inset 4px 4px 4px 0px rgba(0,0,0,0.4) !important;
+  }
+
+  .selected-day-h {
+    background-color: #212529 !important;
+    box-shadow: inset 4px 4px 4px 0px rgba(0,0,0,0.4) !important;
+  }
+
+  .selected-day-a {
+    background-color: cyan !important;
+    color: black;
+    box-shadow: inset 4px 4px 4px 0px rgba(0,0,0,0.4) !important;
+  }
+
+  .selected-day-szsz {
+    background-color: yellow !important;
+    color: black;
+    box-shadow: inset 4px 4px 4px 0px rgba(0,0,0,0.4) !important;
+  }
+  
   .current-day {
     background-color: #bbbbbb;
     color: black;

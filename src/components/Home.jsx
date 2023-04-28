@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Card, Col, Container, Row } from 'react-bootstrap'
+import { Badge, Card, Col, Container, Row } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { getUserData } from '../appwrite';
 import { useNavigate } from 'react-router-dom';
@@ -7,50 +7,27 @@ import { CalendarContainer } from './CalendarContainer';
 import Calendar from 'react-calendar';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
+import CustomCalendar from './CustomCalendar';
+import CustomCalendarDisplayOnly from './CustomCalendarDisplayOnly';
 
 const Home = () => {
   const {theme} = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
   const [selectedDates, setSelectedDates] = useState([]);
+  const [takenDays, setTakenDays] = useState(new Map([
+    ['2023-04-29', 'SZ'],
+    ['2023-04-30', 'T'],
+    ['2023-05-01', 'H'],
+    ['2023-05-02', 'A'],
+    ['2023-05-03', 'SZSZ']
+  ]));
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
     }
   }, []);
-
-  const handleDateClick = (date) => {
-    date.setHours(3, 0, 0, 0);
-    setSelectedDates((prevSelectedDates) => {
-      const dateString = date.toISOString().split('T')[0];
-      return prevSelectedDates.includes(dateString)
-        ? prevSelectedDates.filter((d) => d !== dateString)
-        : [...prevSelectedDates, dateString];
-    });
-  }
-
-  const titleClassName = ({ date, view }) => {
-    if (view === 'month') {
-      date.setHours(3, 0, 0, 0);
-      const dateString = date.toISOString().split('T')[0];
-      let classes = "";
-      if (selectedDates.includes(dateString)) {
-        classes += "selected-day";
-      }
-
-      if (dateString === new Date().toISOString().split('T')[0]) {
-        classes += " current-day";
-      }
-      return classes;
-    }
-  }
-
-  const testClick = (date, event) => {
-    console.log(date);
-    console.log(event);
-    console.log(selectedDates);
-  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -79,14 +56,7 @@ const Home = () => {
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
-              <CalendarContainer $dark={theme == "dark"}>
-                <Calendar
-                  onClickDay={testClick}
-                  onChange={handleDateClick}
-                  tileClassName={titleClassName}
-                  value={null}
-                />
-              </CalendarContainer>
+              <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
               <button type="button" className='btn btn-success mt-3' onClick={handleSubmit}>Küldés</button>
             </Card.Body>
           </Card>
@@ -97,13 +67,17 @@ const Home = () => {
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Naptár</h1></Card.Title>
-              <Card.Text>
-                
-              </Card.Text>
+              <CustomCalendarDisplayOnly selectedDates={takenDays} />
+              
+              <Badge bg='secondary' className='p-2 mt-3 m-2'>Szabadság</Badge>
+              <Badge bg='danger' className='p-2 m-2'>Táppénz</Badge>
+              <Badge bg='dark' className='p-2 m-2 border'>Hozzátartozó halála</Badge>
+              <Badge bg='info' text='dark' className='p-2 m-2'>Apa szabadság</Badge>
+              <Badge bg='warning' text='dark' className='p-2 m-2'>Szülési szabadság</Badge>
             </Card.Body>
           </Card>
         </Col>
-        <Col>
+        <Col className='col-5'>
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Statisztika</h1></Card.Title>
