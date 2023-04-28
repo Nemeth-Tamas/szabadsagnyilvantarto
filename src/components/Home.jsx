@@ -2,27 +2,22 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Card, Col, Container, Row } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { getUserData } from '../appwrite';
-import client from '../appwrite';
 import { useNavigate } from 'react-router-dom';
 import { CalendarContainer } from './CalendarContainer';
 import Calendar from 'react-calendar';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../store/userSlice';
 
 const Home = () => {
   const {theme} = useContext(ThemeContext);
-  const [user, setUser] = useState(null);
+  const user = useSelector(selectUser);
   const navigate = useNavigate();
   const [selectedDates, setSelectedDates] = useState([]);
 
   useEffect(() => {
-    getUserData()
-      .then((account) => {
-        setUser(account);
-      })
-      .catch((error) => {
-        setUser(null);
-        navigate('/login');
-        console.log(error);
-      });
+    if (!user) {
+      navigate('/login');
+    }
   }, []);
 
   const handleDateClick = (date) => {
@@ -71,9 +66,11 @@ const Home = () => {
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
-              <Card.Text>
-                <p className='text-sm-center'>Rendelkezésre álló szabadságok száma / Összes szabadság száma</p>
-                <p className='text-center'>{"<marado>/<összes>"}</p>
+              <Card.Text className='text-sm-center'>
+                Rendelkezésre álló szabadságok száma / Összes szabadság száma
+              </Card.Text>
+              <Card.Text className='text-center'>
+                {"<marado>/<összes>"}
               </Card.Text>
             </Card.Body>
           </Card>
@@ -82,17 +79,15 @@ const Home = () => {
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
-              <Card.Text>
-                <CalendarContainer $dark={theme == "dark"}>
-                  <Calendar
-                    onClickDay={testClick}
-                    onChange={handleDateClick}
-                    tileClassName={titleClassName}
-                    value={null}
-                  />
-                </CalendarContainer>
-                <button type="button" className='btn btn-success mt-3' onClick={handleSubmit}>Küldés</button>
-              </Card.Text>
+              <CalendarContainer $dark={theme == "dark"}>
+                <Calendar
+                  onClickDay={testClick}
+                  onChange={handleDateClick}
+                  tileClassName={titleClassName}
+                  value={null}
+                />
+              </CalendarContainer>
+              <button type="button" className='btn btn-success mt-3' onClick={handleSubmit}>Küldés</button>
             </Card.Body>
           </Card>
         </Col>
@@ -113,9 +108,13 @@ const Home = () => {
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Statisztika</h1></Card.Title>
               <Card.Text>
-                <p>Megállapított szabadságok száma: {"<szám>"}</p>
-                <p>Igénybevett szabadságok száma: {"<szám>"}</p>
-                <p>Rendelkezésreálló szabadságok száma: {"<szám>"}</p>
+                Megállapított szabadságok száma: {"<szám>"}
+              </Card.Text>
+              <Card.Text>
+                Igénybevett szabadságok száma: {"<szám>"}
+              </Card.Text>
+              <Card.Text>
+                Rendelkezésreálló szabadságok száma: {"<szám>"}
               </Card.Text>
             </Card.Body>
           </Card>

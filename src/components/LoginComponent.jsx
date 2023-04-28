@@ -1,13 +1,23 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Alert, Button, Card, Container, Form } from 'react-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { login } from "../appwrite";
+import { getUserData, login } from "../appwrite";
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUser, setUser } from '../store/userSlice';
 
 const LoginComponent = () => {
   const {theme} = useContext(ThemeContext);
   const [loginError, setLoginError] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user]);
 
   const handleSubmit = (e) => {
     e.preventDefault(true);
@@ -20,7 +30,13 @@ const LoginComponent = () => {
   const handleLogin = (username, password) => {
     login(username, password)
     .then(account => {
-      console.log(account);
+      getUserData()
+      .then(acc => {
+        dispatch(setUser(acc));
+      })
+      .catch(error => {
+        console.log(error);
+      });
       navigate('/');
     })
     .catch(error => {
@@ -37,21 +53,19 @@ const LoginComponent = () => {
       <Card bg={theme} text={theme == "light" ? "dark" : "light"}>
         <Card.Body>
           <Card.Title>Bejelentkezés</Card.Title>
-          <Card.Text>
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className='mb-3' controlId='formUsername'>
-                <Form.Label>Felhasználónév</Form.Label>
-                <Form.Control type='username' placeholder='Felhasználónév' />
-              </Form.Group>
-              <Form.Group className='mb-3' controlId='formPassword'>
-                <Form.Label>Jelszó</Form.Label>
-                <Form.Control type='password' placeholder='Jelszó' />
-              </Form.Group>
-              <Button variant='primary' type='subbmit'>
-                Bejelentkezés
-              </Button>
-            </Form>
-          </Card.Text>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className='mb-3' controlId='formUsername'>
+              <Form.Label>Felhasználónév</Form.Label>
+              <Form.Control type='username' placeholder='Felhasználónév' />
+            </Form.Group>
+            <Form.Group className='mb-3' controlId='formPassword'>
+              <Form.Label>Jelszó</Form.Label>
+              <Form.Control type='password' placeholder='Jelszó' />
+            </Form.Group>
+            <Button variant='primary' type='subbmit'>
+              Bejelentkezés
+            </Button>
+          </Form>
         </Card.Body>
       </Card>
     </Container>

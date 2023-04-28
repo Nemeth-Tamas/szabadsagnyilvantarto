@@ -4,12 +4,15 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
 import { getUserData, logout } from '../appwrite';
 import { useNavigate } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser, selectUser } from '../store/userSlice';
 
 const MainNavbar = () => {
   const {theme, changeTheme} = useContext(ThemeContext);
   const [themeButton, setThemeButton] = useState("Világos");
-  const [user, setUser] = useState(null);
+  const user = useSelector(selectUser);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const switchTheme = () => {
     if (theme == "light") {
@@ -28,16 +31,30 @@ const MainNavbar = () => {
       setThemeButton("Világos");
     }
 
-    getUserData()
-      .then((account) => {
-        setUser(account);
+    // console.log(user);
+
+    // getUserData()
+    //   .then((account) => {
+    //     setUser(account);
+    //   })
+    //   .catch((error) => {
+    //     setUser(null);
+    //     navigate('/login');
+    //     console.log(error);
+    //   });
+  }, []);
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    logout()
+      .then(() => {
+        dispatch(logoutUser())
+        navigate('/login');
       })
       .catch((error) => {
-        setUser(null);
-        navigate('/login');
         console.log(error);
       });
-  }, []);
+  }
 
   return (
     <>
@@ -69,7 +86,7 @@ const MainNavbar = () => {
             </Form>
             <Nav className='px-2'>
               {user != null ? (
-                <Button variant='outline-primary' onClick={logout}>Kijelentkezés</Button>
+                <Button variant='outline-primary' onClick={handleLogout}>Kijelentkezés</Button>
               ) : (
                 <LinkContainer to="/login">
                   <Button variant='outline-primary'>
