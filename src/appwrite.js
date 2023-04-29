@@ -26,7 +26,10 @@ export const login = async (email, password) => {
 
 export const logout = async () => {
     try {
+        console.log("trying to logout");
+        console.log(client);
         const account = new Account(client)
+        console.log(account.get());
         return account.deleteSession('current')
     } catch (error) {
         const appwriteError = error;

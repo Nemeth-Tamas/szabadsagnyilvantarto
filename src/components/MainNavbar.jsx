@@ -30,10 +30,15 @@ const MainNavbar = () => {
     } else {
       setThemeButton("Világos");
     }
+    // console.log(user);
+    // if (!user || !user.$id) {
+    //   navigate('/login');
+    // }
   }, []);
 
   const handleLogout = (e) => {
     e.preventDefault();
+    console.log("logging out");
     logout()
       .then(() => {
         dispatch(logoutUser())
@@ -58,12 +63,12 @@ const MainNavbar = () => {
               <LinkContainer to="/messages">
                 <Nav.Link>Üzenetek</Nav.Link>
               </LinkContainer>
-              {user?.prefs.perms.includes("irodavezeto.approve") ? (
+              {user?.prefs?.perms.includes("irodavezeto.approve") ? (
                 <LinkContainer to="/requests">
                   <Nav.Link>Kérelmek</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {user?.prefs.perms.includes("irodavezeto.list_own") || user?.prefs.perms.includes("jegyzo.list_all") ? (
+              {user?.prefs?.perms.includes("irodavezeto.list_own") || user?.prefs?.perms.includes("jegyzo.list_all") ? (
                 <LinkContainer to="/users">
                   <Nav.Link>Felhasználók</Nav.Link>
                 </LinkContainer>

@@ -14,7 +14,8 @@ const LoginComponent = () => {
   const user = useSelector(selectUser);
 
   useEffect(() => {
-    if (user) {
+    console.log("LOGIN:",user);
+    if (user && user.$id) {
       navigate('/');
     }
   }, [user]);
