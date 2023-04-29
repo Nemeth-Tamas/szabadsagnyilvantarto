@@ -16,7 +16,6 @@ const CustomCalendarDisplayOnly = ({ selectedDates }) => {
       let classes = "";
       const value = selectedDates.get(dateString);
       if (value) {
-        console.log(value);
         if (value === 'SZ') classes += "selected-day-sz";
         if (value === 'T') classes += "selected-day-t";
         if (value === 'H') classes += "selected-day-h";

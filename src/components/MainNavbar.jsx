@@ -30,18 +30,6 @@ const MainNavbar = () => {
     } else {
       setThemeButton("Világos");
     }
-
-    // console.log(user);
-
-    // getUserData()
-    //   .then((account) => {
-    //     setUser(account);
-    //   })
-    //   .catch((error) => {
-    //     setUser(null);
-    //     navigate('/login');
-    //     console.log(error);
-    //   });
   }, []);
 
   const handleLogout = (e) => {
@@ -58,7 +46,7 @@ const MainNavbar = () => {
 
   return (
     <>
-      <Navbar bg={theme} variant={theme}>
+      <Navbar bg={theme} variant={theme} expand="md">
         <Container>
           <Navbar.Brand>Szabadság nyilvántartó</Navbar.Brand>
           <Navbar.Toggle aria-controls='basic-navbar-nav' />
@@ -81,19 +69,13 @@ const MainNavbar = () => {
                 </LinkContainer>
               ) : (<></>)}
             </Nav>
-            <Form className='d-flex'>
+            <Form className='d-flex pe-2'>
               <Button variant='outline-info' onClick={switchTheme}>{themeButton}</Button>
             </Form>
-            <Nav className='px-2'>
+            <Nav>
               {user != null ? (
-                <Button variant='outline-primary' onClick={handleLogout}>Kijelentkezés</Button>
-              ) : (
-                <LinkContainer to="/login">
-                  <Button variant='outline-primary'>
-                    Bejelentkezés
-                  </Button>
-                </LinkContainer>
-              )}
+                <Button variant='outline-primary' className='me-auto mt-sm-2 mt-md-0' onClick={handleLogout}>Kijelentkezés</Button>
+              ) : ""}
             </Nav>
           </Navbar.Collapse>
         </Container>

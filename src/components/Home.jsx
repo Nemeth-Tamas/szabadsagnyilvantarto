@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Badge, Card, Col, Container, Row } from 'react-bootstrap'
+import { Badge, ButtonGroup, Card, Col, Container, Row } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { getUserData } from '../appwrite';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ const Home = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
   const [selectedDates, setSelectedDates] = useState([]);
+  const [selectedType, setSelectedType] = useState('SZ');
   const [takenDays, setTakenDays] = useState(new Map([
     ['2023-04-29', 'SZ'],
     ['2023-04-30', 'T'],
@@ -31,15 +32,19 @@ const Home = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(selectedDates);
+    console.log("Selected Dates:", selectedDates, "Selected Type:", selectedType);
     setSelectedDates([]);
+  }
+
+  const handleRadioChange = (e) => {
+    setSelectedType(e.target.id);
   }
 
   return (
     
     <Container className='h-100 d-flex flex-column'>
       <Row className='flex-grow-1'>
-        <Col className='col-5'>
+        <Col className='col-lg-5 col-md-12'>
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
@@ -57,6 +62,14 @@ const Home = () => {
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
               <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
+              <ButtonGroup role='group' aria-label='Szabadság típusa' className='d-flex justify-content-center mt-3'>
+                <input type="radio" className='btn-check' name='szabadsagTipusa' id='SZ' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'SZ'} />
+                <label class="btn btn-outline-secondary" for="SZ">Szabadság</label>
+                <input type="radio" className='btn-check' name='szabadsagTipusa' id='H' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'H'} />
+                <label class="btn btn-outline-primary" for="H">Hozzátartozó halála</label>
+                <input type="radio" className='btn-check' name='szabadsagTipusa' id='SZSZ' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'SZSZ'} />
+                <label class="btn btn-outline-warning" for="SZSZ">Szülési szabadság</label>
+              </ButtonGroup>
               <button type="button" className='btn btn-success mt-3' onClick={handleSubmit}>Küldés</button>
             </Card.Body>
           </Card>
@@ -77,7 +90,7 @@ const Home = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col className='col-5'>
+        <Col className='col-lg-5 col-md-12'>
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Statisztika</h1></Card.Title>
