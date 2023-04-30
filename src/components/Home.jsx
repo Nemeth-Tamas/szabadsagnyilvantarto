@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import CustomCalendar from './CustomCalendar';
 import CustomCalendarDisplayOnly from './CustomCalendarDisplayOnly';
+import RemainingIndicator from './RemainingIndicator';
 
 const Home = () => {
   const {theme} = useContext(ThemeContext);
@@ -48,14 +49,12 @@ const Home = () => {
       <Row className='flex-grow-1'>
         <Col className='col-lg-5 col-md-12'>
           <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
-            <Card.Body>
+            <Card.Body className='d-flex flex-column align-items-center'>
               <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
               <Card.Text className='text-sm-center'>
                 Rendelkezésre álló szabadságok száma / Összes szabadság száma
               </Card.Text>
-              <Card.Text className='text-center'>
-                {"<marado>/<összes>"}
-              </Card.Text>
+              <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainigdays} />
             </Card.Body>
           </Card>
         </Col>
@@ -97,13 +96,13 @@ const Home = () => {
             <Card.Body>
               <Card.Title><h1 className='display-6 text-center'>Statisztika</h1></Card.Title>
               <Card.Text>
-                Megállapított szabadságok száma: {"<szám>"}
+                Megállapított szabadságok száma: {user?.prefs?.maxdays}
               </Card.Text>
               <Card.Text>
-                Igénybevett szabadságok száma: {"<szám>"}
+                Igénybevett szabadságok száma: {user?.prefs?.maxdays - user?.prefs?.remainigdays}
               </Card.Text>
               <Card.Text>
-                Rendelkezésreálló szabadságok száma: {"<szám>"}
+                Rendelkezésreálló szabadságok száma: {user?.prefs?.remainigdays}
               </Card.Text>
             </Card.Body>
           </Card>
