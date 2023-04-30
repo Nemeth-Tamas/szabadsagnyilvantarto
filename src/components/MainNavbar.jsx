@@ -30,10 +30,6 @@ const MainNavbar = () => {
     } else {
       setThemeButton("Világos");
     }
-    // console.log(user);
-    // if (!user || !user.$id) {
-    //   navigate('/login');
-    // }
   }, []);
 
   const handleLogout = (e) => {
@@ -62,6 +58,9 @@ const MainNavbar = () => {
               </LinkContainer>
               <LinkContainer to="/messages">
                 <Nav.Link>Üzenetek</Nav.Link>
+              </LinkContainer>
+              <LinkContainer to="/userrequests">
+                <Nav.Link>Saját kérelmek</Nav.Link>
               </LinkContainer>
               {user?.prefs?.perms.includes("irodavezeto.approve") ? (
                 <LinkContainer to="/requests">

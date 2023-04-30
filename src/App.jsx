@@ -5,6 +5,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
 import LoginComponent from './components/LoginComponent';
+import UserRequests from './components/UserRequests';
 
 function App() {
   const {theme} = useContext(ThemeContext);
@@ -17,6 +18,7 @@ function App() {
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path='/messages' element={<Messages />} />
+            <Route path='/userrequests' element={<UserRequests />} />
             <Route path='/login' element={<LoginComponent />} />
           </Routes>
         </Router>
