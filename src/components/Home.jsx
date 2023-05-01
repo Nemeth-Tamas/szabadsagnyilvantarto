@@ -1,29 +1,27 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Badge, ButtonGroup, Card, Col, Container, Row } from 'react-bootstrap'
+import { Badge, ButtonGroup, Card, Col, Container, Row, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
-import { getUserData } from '../appwrite';
 import { useNavigate } from 'react-router-dom';
-import { CalendarContainer } from './CalendarContainer';
-import Calendar from 'react-calendar';
-import { useSelector } from 'react-redux';
-import { selectUser } from '../store/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUser, setUser } from '../store/userSlice';
 import CustomCalendar from './CustomCalendar';
 import CustomCalendarDisplayOnly from './CustomCalendarDisplayOnly';
 import RemainingIndicator from './RemainingIndicator';
+import axios from 'axios';
+import { getUserData } from '../appwrite';
 
 const Home = () => {
+  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const {theme} = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
-  const [takenDays, setTakenDays] = useState(new Map([
-    ['2023-04-29', 'SZ'],
-    ['2023-04-30', 'T'],
-    ['2023-05-01', 'H'],
-    ['2023-05-02', 'A'],
-    ['2023-05-03', 'SZSZ']
-  ]));
+  const [notEnoughError, setNotEnoughError] = useState(false);
+  const dispatch = useDispatch();
+  const [takenDays, setTakenDays] = useState(new Map());
 
   useEffect(() => {
     console.log(user);
@@ -31,11 +29,53 @@ const Home = () => {
     if (!user || !user.$id) {
       navigate('/login');
     }
+
+    if (user?.$id) {
+      getUserData()
+        .then(acc => {
+          dispatch(setUser(acc));
+        })
+        .catch(error => {
+          console.log(error);
+        });
+  
+      getUserDays();
+    }
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Selected Dates:", selectedDates, "Selected Type:", selectedType);
+    let options = {
+      method: 'POST',
+      url: `${url}/kerelmek/add`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      },
+      data: {
+        managerId: user?.prefs?.manager,
+        type: selectedType,
+        dates: selectedDates
+      }
+    }
+    
+    if (selectedDates.length == 0) return;
+    if (user?.prefs?.remainigdays - selectedDates.length < 0) {
+      setNotEnoughError(true);
+      return;
+    }
+
+    axios.request(options)
+    .then((response) => {
+      console.log(response);
+      if (response.status != 200) setError(true);
+      if (response.data.status == 'fail') setError(true);
+      if (response.data.status == 'success') setSuccess(true);
+    })
+    .catch((error) => {
+      console.log(error);
+      setError(true);
+    });
     setSelectedDates([]);
   }
 
@@ -43,8 +83,69 @@ const Home = () => {
     setSelectedType(e.target.id);
   }
 
+  const getUserDays = () => {
+    let takenDaysCurrent = new Map();
+    let options = {
+      method: 'GET',
+      url: `${url}/szabadsagok/own`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      }
+    }
+
+    axios.request(options)
+    .then((response) => {
+      console.log(response);
+      if (response.status != 200) setError(true);
+      if (response.data.status == 'fail') setError(true);
+      if (response.data.status == 'success') {
+        response.data.szabadsagok.documents.forEach((document) => {
+          document.dates.forEach((date) => {
+            takenDaysCurrent.set(date, document.type)
+          });
+        });
+        setTakenDays(takenDaysCurrent);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      setError(true);
+    });
+  }
+
   return (
-    
+    <>
+    <ToastContainer
+        className='p-3'
+        position='bottom-end'
+        style={{ zIndex: 9999 }}
+      >
+        <Toast show={error} onClose={() => setError(false)} delay={3000} autohide animation={true} className='bg-danger text-white' >
+          <ToastHeader>
+            <strong className="me-auto">Hiba</strong>
+          </ToastHeader>
+          <ToastBody>
+            Nem sikerült elküldeni a kérelmét. Kérjük próbálja újra később.
+          </ToastBody>
+        </Toast>
+        <Toast show={notEnoughError} onClose={() => setNotEnoughError(false)} delay={3000} autohide animation={true} className='bg-danger text-white' >
+          <ToastHeader>
+            <strong className="me-auto">Hiba</strong>
+          </ToastHeader>
+          <ToastBody>
+            Nem sikerült elküldeni a kérelmét. Nincs elég szabadsága.
+          </ToastBody>
+        </Toast>
+        <Toast show={success} onClose={() => setSuccess(false)} delay={3000} autohide animation={true} className='bg-success text-white' >
+          <ToastHeader>
+            <strong className="me-auto">Elküldve</strong>
+          </ToastHeader>
+          <ToastBody>
+            Kérelmét sikeresen elküldtük.
+          </ToastBody>
+        </Toast>
+      </ToastContainer>
     <Container className='h-100 d-flex flex-column'>
       <Row className='flex-grow-1'>
         <Col className='col-lg-5 col-md-12'>
@@ -109,6 +210,7 @@ const Home = () => {
         </Col>
       </Row>
     </Container>
+    </>
   )
 }
 

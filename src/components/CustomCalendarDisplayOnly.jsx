@@ -5,7 +5,7 @@ import Calendar from 'react-calendar';
 import { selectUser } from '../store/userSlice';
 import { useSelector } from 'react-redux';
 
-const CustomCalendarDisplayOnly = ({ selectedDates }) => {
+const CustomCalendarDisplayOnly = ({ selectedDates, context }) => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
 
@@ -31,7 +31,7 @@ const CustomCalendarDisplayOnly = ({ selectedDates }) => {
   }
 
   return (
-    <CalendarContainer $dark={theme == "dark"}>
+    <CalendarContainer $dark={theme == "dark" && context != "modal"}>
       <Calendar
         tileClassName={titleClassName}
         value={null}
