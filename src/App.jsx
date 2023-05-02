@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
 import LoginComponent from './components/LoginComponent';
 import UserRequests from './components/UserRequests';
+import Requests from './components/Requests';
 
 function App() {
   const {theme} = useContext(ThemeContext);
@@ -20,6 +21,7 @@ function App() {
             <Route path='/messages' element={<Messages />} />
             <Route path='/userrequests' element={<UserRequests />} />
             <Route path='/login' element={<LoginComponent />} />
+            <Route path='/requests' element={<Requests />} />
           </Routes>
         </Router>
       </Container>

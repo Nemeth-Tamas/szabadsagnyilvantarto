@@ -45,6 +45,7 @@ const Home = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(selectedDates);
     let options = {
       method: 'POST',
       url: `${url}/kerelmek/add`,
@@ -58,16 +59,18 @@ const Home = () => {
         dates: selectedDates
       }
     }
+
+    console.log(options);
     
     if (selectedDates.length == 0) return;
-    if (user?.prefs?.remainigdays - selectedDates.length < 0) {
+    if (user?.prefs?.remainingdays - selectedDates.length < 0) {
       setNotEnoughError(true);
       return;
     }
 
     axios.request(options)
     .then((response) => {
-      console.log(response);
+      console.log("HERE:",response);
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
       if (response.data.status == 'success') setSuccess(true);
@@ -155,7 +158,7 @@ const Home = () => {
               <Card.Text className='text-sm-center'>
                 Rendelkezésre álló szabadságok száma / Összes szabadság száma
               </Card.Text>
-              <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainigdays} />
+              <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainingdays} />
             </Card.Body>
           </Card>
         </Col>
@@ -200,10 +203,10 @@ const Home = () => {
                 Megállapított szabadságok száma: {user?.prefs?.maxdays}
               </Card.Text>
               <Card.Text>
-                Igénybevett szabadságok száma: {user?.prefs?.maxdays - user?.prefs?.remainigdays}
+                Igénybevett szabadságok száma: {user?.prefs?.maxdays - user?.prefs?.remainingdays}
               </Card.Text>
               <Card.Text>
-                Rendelkezésreálló szabadságok száma: {user?.prefs?.remainigdays}
+                Rendelkezésreálló szabadságok száma: {user?.prefs?.remainingdays}
               </Card.Text>
             </Card.Body>
           </Card>

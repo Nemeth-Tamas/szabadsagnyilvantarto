@@ -76,6 +76,7 @@ const UserRequests = () => {
       })
       .catch((error) => {
         console.log(error);
+        setError(true);
       });
   };
 
@@ -117,12 +118,12 @@ const UserRequests = () => {
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'}>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Dátumok</th>
-            <th>Típus</th>
-            <th>Státusz</th>
-            <th>Visszautasítás oka</th>
-            <th>Műveletek</th>
+            <th style={{maxWidth: "1%", width: "1%"}}>#</th>
+            <th style={{maxWidth: "33.5%", width: "33.5%"}}>Dátumok</th>
+            <th style={{maxWidth: "9%", width: "9%"}}>Típus</th>
+            <th style={{maxWidth: "9%", width: "9%"}}>Státusz</th>
+            <th style={{maxWidth: "33.5%", width: "33.5%"}}>Visszautasítás oka</th>
+            <th style={{maxWidth: "14%", width: "14%"}}>Műveletek</th>
           </tr>
         </thead>
         <tbody>
@@ -146,7 +147,7 @@ const UserRequests = () => {
                   handleView(item.$id);
                 }}>Megtekintés</Button>
                 {/* Development Function */}
-                <Button type='button' className='btn-outline-info me-0 my-1' onClick={(e) => {
+                <Button type='button' className='btn-info me-0 my-1' onClick={(e) => {
                   e.preventDefault();
                   async function copyToClipboard(text) {
                     if ('clipboard' in navigator) {
@@ -156,7 +157,7 @@ const UserRequests = () => {
                     }
                   }
                   copyToClipboard(item.$id);
-                }}>Copy ID</Button>
+                }}></Button>
                 </td>
             </tr>
           ))}
