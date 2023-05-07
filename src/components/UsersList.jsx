@@ -19,6 +19,9 @@ const UsersList = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showSendMessage, setShowSendMessage] = useState(false);
+  const [sendMessageId, setSendMessageId] = useState('');
+  const [sendMessageText, setSendMessageText] = useState('');
   
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
@@ -41,6 +44,7 @@ const UsersList = () => {
     setUserMaxdays(0);
     setUserDaysLeft(0);
   }
+  const handleSendMessageClose = () => { setShowSendMessage(false); setSendMessageId(''); setSendMessageText(''); }
 
   useEffect(() => {
     console.log(user);
@@ -215,6 +219,45 @@ const UsersList = () => {
 
   };
 
+  const sendMessage = (id) => {
+    setShowSendMessage(true);
+    setSendMessageId(id);
+  }
+
+  const handleSubmitMessage = () => {
+    let postUserId = sendMessageId;
+    let postMessageContent = sendMessageText;
+    let postMessageDate = new Date().toISOString();
+
+    if (postMessageContent == '') {
+      setError(true);
+      return;
+    }
+
+    axios.request({
+      method: 'POST',
+      url: `${url}/uzenetek/create`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      },
+      data: {
+        userId: postUserId,
+        message: postMessageContent,
+        date: postMessageDate
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      if (response.data.status == 'fail') setError(true);
+      console.log(response);
+      handleUpdate();
+      handleSendMessageClose();
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
+  }
+
   return (
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
@@ -227,6 +270,28 @@ const UsersList = () => {
         <Modal.Footer>
           <Button variant={theme} onClick={() => handleCalendarClose()}>
             Bezárás
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal variant={theme} show={showSendMessage} onHide={handleSendMessageClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Üzenet küldés</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <form>
+            <div className="mb-3">
+              <label htmlFor="messageContent" className="form-label">Üzenet tartalma</label>
+              <textarea className="form-control" id="messageContent" rows="3" value={sendMessageText} onChange={(e) => setSendMessageText(e.target.value)}></textarea>
+            </div>
+          </form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant={theme} onClick={() => handleCalendarClose()}>
+            Bezárás
+          </Button>
+          <Button variant="success" onClick={handleSubmitMessage}>
+            Mentés
           </Button>
         </Modal.Footer>
       </Modal>
@@ -361,7 +426,7 @@ const UsersList = () => {
                 {user?.prefs?.perms?.includes('irodavezeto.message_send') && (
                   <Button type='button' className='btn-success my-1 mx-1' onClick={(e) => {
                     e.preventDefault();
-                    // sendMessage(u.$id);
+                    sendMessage(u.$id);
                   }}>Üzenet küzdés</Button>
                 )}
                 {user?.prefs?.perms?.includes('jegyzo.edit_user') && (
