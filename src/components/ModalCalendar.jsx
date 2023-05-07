@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
 
-const ModalCalendar = ({ id }) => {
+const ModalCalendar = ({ id, userData = null }) => {
   const user = useSelector(selectUser);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [shouldShow, setShouldShow] = useState(false);
@@ -19,31 +19,47 @@ const ModalCalendar = ({ id }) => {
   useEffect(() => {
     console.log(id);
     // send axios request to get days taken by user with id
-    const options = {
-      method: 'GET',
-      url: `${url}/kerelmek/${id}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }
 
-    axios.request(options)
-      .then((response) => {
-        console.log(response);
-        let takenDays = new Map();
-        if (response.data.status == 'fail') throw new Error('Failed to get taken days');
-        else setShouldShow(true);
-        let kerelem = response.data.kerelem;
-        kerelem.dates.forEach((date) => {
-          takenDays.set(date, kerelem.type);
+    if (userData == null && id != null) {
+      const options = {
+        method: 'GET',
+        url: `${url}/kerelmek/${id}`,
+        headers: {
+          'Content-Type': 'application/json',
+          'submittingId': user.$id
+        }
+      }
+  
+      axios.request(options)
+        .then((response) => {
+          console.log(response);
+          let takenDays = new Map();
+          if (response.data.status == 'fail') throw new Error('Failed to get taken days');
+          else setShouldShow(true);
+          let kerelem = response.data.kerelem;
+          kerelem.dates.forEach((date) => {
+            takenDays.set(date, kerelem.type);
+          });
+          setTakenDays(takenDays);
+        })
+        .catch((error) => {
+          console.log(error);
+          setError(true);
         });
-        setTakenDays(takenDays);
+    } else if (userData != null && userData != undefined && id == null) {
+      console.log("HERE",userData);
+      let takenDays = new Map();
+      userData.forEach((document) => {
+        document.dates.forEach(date => {
+          takenDays.set(date, document.type);
+        })
       })
-      .catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+      setTakenDays(takenDays);
+      setShouldShow(true);
+    } else {
+      setTakenDays(new Map());
+      setShouldShow(true);
+    }
   }, []);
 
   return (

@@ -7,6 +7,7 @@ import { ThemeContext } from './ThemeContext';
 import LoginComponent from './components/LoginComponent';
 import UserRequests from './components/UserRequests';
 import Requests from './components/Requests';
+import UsersList from './components/UsersList';
 
 function App() {
   const {theme} = useContext(ThemeContext);
@@ -22,6 +23,7 @@ function App() {
             <Route path='/userrequests' element={<UserRequests />} />
             <Route path='/login' element={<LoginComponent />} />
             <Route path='/requests' element={<Requests />} />
+            <Route path='/users' element={<UsersList />} />
           </Routes>
         </Router>
       </Container>

@@ -141,7 +141,7 @@ const Requests = () => {
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Időpontok</Modal.Title>
+          <Modal.Title>Szabadságok</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ModalCalendar id={calendarId} />
@@ -171,7 +171,7 @@ const Requests = () => {
             Bezárás
           </Button>
           <Button variant="success" onClick={handleActualReject}>
-            Save
+            Mentés
           </Button>
         </Modal.Footer>
       </Modal>

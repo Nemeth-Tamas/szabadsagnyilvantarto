@@ -118,11 +118,11 @@ const UserRequests = () => {
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'}>
         <thead>
           <tr>
-            <th style={{maxWidth: "1%", width: "1%"}}>#</th>
-            <th style={{maxWidth: "33.5%", width: "33.5%"}}>Dátumok</th>
+            <th style={{maxWidth: "3%", width: "3%"}}>#</th>
+            <th style={{maxWidth: "33%", width: "33%"}}>Dátumok</th>
             <th style={{maxWidth: "9%", width: "9%"}}>Típus</th>
             <th style={{maxWidth: "9%", width: "9%"}}>Státusz</th>
-            <th style={{maxWidth: "33.5%", width: "33.5%"}}>Visszautasítás oka</th>
+            <th style={{maxWidth: "33%", width: "33%"}}>Visszautasítás oka</th>
             <th style={{maxWidth: "14%", width: "14%"}}>Műveletek</th>
           </tr>
         </thead>
