@@ -5,11 +5,11 @@ import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import { ModalCalendar } from '../components';
+import { ModalCalendar, ErrorToast, SuccessToast } from '../components';
 import bcrypt from 'bcryptjs';
 
 const UsersList = () => {
-  const {theme} = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
   const [error, setError] = useState(false);
@@ -22,7 +22,7 @@ const UsersList = () => {
   const [showSendMessage, setShowSendMessage] = useState(false);
   const [sendMessageId, setSendMessageId] = useState('');
   const [sendMessageText, setSendMessageText] = useState('');
-  
+
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [userUsername, setUserUsername] = useState('');
@@ -33,8 +33,8 @@ const UsersList = () => {
   const [userDaysLeft, setUserDaysLeft] = useState(0);
 
   const handleCalendarClose = () => { setShowCalendar(false); setUserCalendarData(null); }
-  const handleCreateUserClose = () => { 
-    setShowCreateUser(false); 
+  const handleCreateUserClose = () => {
+    setShowCreateUser(false);
     setUserEmail('');
     setUserPassword('');
     setUserUsername('');
@@ -48,8 +48,8 @@ const UsersList = () => {
 
   useEffect(() => {
     console.log(user);
-    if (!user?.prefs?.perms?.includes('irodavezeto.list_own') && 
-        !user?.prefs?.perms?.includes('jegyzo.list_all')) {
+    if (!user?.prefs?.perms?.includes('irodavezeto.list_own') &&
+      !user?.prefs?.perms?.includes('jegyzo.list_all')) {
       navigate('/');
     }
     handleUpdate();
@@ -364,27 +364,9 @@ const UsersList = () => {
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer
-        className='p-3'
-        position='bottom-end'
-        style={{ zIndex: 9999 }}
-      >
-        <Toast show={error} onClose={() => setError(false)} delay={3000} autohide animation={true} className='bg-danger text-white' >
-          <ToastHeader>
-            <strong className="me-auto">Hiba</strong>
-          </ToastHeader>
-          <ToastBody>
-            Nem sikerült a kérelem teljesítése.
-          </ToastBody>
-        </Toast>
-        <Toast show={success} onClose={() => setSuccess(false)} delay={3000} autohide animation={true} className='bg-success text-white' >
-          <ToastHeader>
-            <strong className="me-auto">Létrehozva</strong>
-          </ToastHeader>
-          <ToastBody>
-            Felhasználó sikeresen létrehozva.
-          </ToastBody>
-        </Toast>
+      <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
+        <ErrorToast error={error} setError={setError} text="Nem sikerült a kérelem teljesítése." />
+        <SuccessToast success={success} setSuccess={setSuccess} title="Létrehozva" text={`Felhasználó sikeresen létrehozva.`} />
       </ToastContainer>
 
       <div className='w-100 d-flex'>
@@ -404,11 +386,11 @@ const UsersList = () => {
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'}>
         <thead>
           <tr>
-            <th style={{maxWidth: "3%", width: "3%"}}>#</th>
-            <th style={{maxWidth: "30%", width: "30%"}}>Név</th>
-            <th style={{maxWidth: "30%", width: "30%"}}>Felhasználónév</th>
-            <th style={{maxWidth: "36%", width: "36%"}}>Műveletek</th>
-          </tr>  
+            <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
+            <th style={{ maxWidth: "30%", width: "30%" }}>Név</th>
+            <th style={{ maxWidth: "30%", width: "30%" }}>Felhasználónév</th>
+            <th style={{ maxWidth: "36%", width: "36%" }}>Műveletek</th>
+          </tr>
         </thead>
         <tbody>
           {data.map((u, index) => (
@@ -440,7 +422,7 @@ const UsersList = () => {
                     e.preventDefault();
                     if (window.confirm("Biztos szeretné a felhasználót?")) deleteUser(u.$id);
                   }}>Törlés</Button>
-                )}                
+                )}
               </td>
             </tr>
           ))}

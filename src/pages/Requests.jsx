@@ -5,10 +5,10 @@ import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import { ModalCalendar } from '../components';
+import { ErrorToast, ModalCalendar } from '../components';
 
 const Requests = () => {
-  const {theme} = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser)
   const [data, setData] = useState([]);
   const [error, setError] = useState(false);
@@ -59,7 +59,7 @@ const Requests = () => {
 
   const handleDelete = (id) => {
     console.log(id);
-    
+
     const options = {
       method: 'DELETE',
       url: `${url}/kerelmek/${id}`,
@@ -161,8 +161,8 @@ const Requests = () => {
           <form>
             <div className="form-group">
               <label htmlFor="rejectMessage">Üzenet:</label>
-              <input type="text" className='form-control' name="rejectMessage" id="rejectMessage" 
-              value={rejectMessage} onChange={(e) => setRejectMessage(e.target.value)} />
+              <input type="text" className='form-control' name="rejectMessage" id="rejectMessage"
+                value={rejectMessage} onChange={(e) => setRejectMessage(e.target.value)} />
             </div>
           </form>
         </Modal.Body>
@@ -176,19 +176,8 @@ const Requests = () => {
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer
-        className='p-3'
-        position='bottom-end'
-        style={{ zIndex: 9999 }}
-      >
-        <Toast show={error} onClose={() => setError(false)} delay={3000} autohide animation={true} className='bg-danger text-white' >
-          <ToastHeader>
-            <strong className="me-auto">Hiba</strong>
-          </ToastHeader>
-          <ToastBody>
-            Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.
-          </ToastBody>
-        </Toast>
+      <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
+        <ErrorToast error={error} setError={setError} text='Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.' />
       </ToastContainer>
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1' onClick={(e) => {
@@ -199,12 +188,12 @@ const Requests = () => {
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'} >
         <thead>
           <tr>
-            <th style={{maxWidth: "12%", width: "12%"}}>Név</th>
-            <th style={{maxWidth: "28%", width: "28%"}}>Dátumok</th>
-            <th style={{maxWidth: "9%", width: "9%"}}>Típus</th>
-            <th style={{maxWidth: "9%", width: "9%"}}>Státusz</th>
-            <th style={{maxWidth: "28%", width: "28%"}}>Visszautasítás oka</th>
-            <th style={{maxWidth: "14%", width: "14%"}}>Műveletek</th>
+            <th style={{ maxWidth: "12%", width: "12%" }}>Név</th>
+            <th style={{ maxWidth: "28%", width: "28%" }}>Dátumok</th>
+            <th style={{ maxWidth: "9%", width: "9%" }}>Típus</th>
+            <th style={{ maxWidth: "9%", width: "9%" }}>Státusz</th>
+            <th style={{ maxWidth: "28%", width: "28%" }}>Visszautasítás oka</th>
+            <th style={{ maxWidth: "14%", width: "14%" }}>Műveletek</th>
           </tr>
         </thead>
         <tbody>
@@ -220,25 +209,27 @@ const Requests = () => {
               <td>{item.rejectedMessage ? item.rejectedMessage : ""}</td>
               <td>
                 {item.approved ? "" : item.rejected ? "" : (<>
-                <Button type='button' className='btn-success my-1 mx-1' onClick={(e) => {
-                  e.preventDefault();
-                  handleApprove(item.$id);
-                }}>Elfogadás</Button>
-                {user.prefs.perms.includes('irpdavezeto.reject') ?
-                <Button type='button' className='btn-warning my-1 mx-1' onClick={(e) => {
-                  e.preventDefault();
-                  handleReject(item.$id);
-                }}>Elutasítás</Button> : "" }<br /></>
+                  <Button type='button' className='btn-success my-1 mx-1' onClick={(e) => {
+                    e.preventDefault();
+                    handleApprove(item.$id);
+                  }}>Elfogadás</Button>
+                  {user.prefs.perms.includes('irpdavezeto.reject') ?
+                    <Button type='button' className='btn-warning my-1 mx-1' onClick={(e) => {
+                      e.preventDefault();
+                      handleReject(item.$id);
+                    }}>Elutasítás</Button> : ""}<br /></>
                 )}
                 <Button type='button' className='btn-primary mx-1 my-1' onClick={(e) => {
                   e.preventDefault();
                   handleView(item.$id);
                 }}>Megtekintés</Button>
-                {user.prefs.perms.includes('hr.edit_user_current_state') ? 
-                <Button type='button' className='btn-danger my-1 me-0 mx-1' onClick={(e) => {
-                  e.preventDefault();
-                  handleDelete(item.$id);
-                }}>Törlés</Button> : ""}
+                {user.prefs.perms.includes('hr.edit_user_current_state') ?
+                  <Button type='button' className='btn-danger my-1 me-0 mx-1' onClick={(e) => {
+                    e.preventDefault();
+                    if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
+                      handleDelete(item.$id);
+                    }
+                  }}>Törlés</Button> : ""}
                 {/* Development Function */}
                 <Button type='button' className='btn-info me-0 my-1' onClick={(e) => {
                   e.preventDefault();
@@ -251,7 +242,7 @@ const Requests = () => {
                   }
                   copyToClipboard(item.$id);
                 }}></Button>
-                </td>
+              </td>
             </tr>
           ))}
         </tbody>

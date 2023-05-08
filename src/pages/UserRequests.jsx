@@ -4,7 +4,7 @@ import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
-import { ModalCalendar } from '../components';
+import { ErrorToast, ModalCalendar } from '../components';
 import { useNavigate } from 'react-router';
 
 const UserRequests = () => {
@@ -93,19 +93,8 @@ const UserRequests = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      <ToastContainer
-        className='p-3'
-        position='bottom-end'
-        style={{ zIndex: 9999 }}
-      >
-        <Toast show={error} onClose={() => setError(false)} delay={3000} autohide animation={true} className='bg-danger text-white' >
-          <ToastHeader>
-            <strong className="me-auto">Hiba</strong>
-          </ToastHeader>
-          <ToastBody>
-            Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.
-          </ToastBody>
-        </Toast>
+      <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
+        <ErrorToast error={error} setError={setError} text='Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.' />
       </ToastContainer>
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1' onClick={(e) => {
@@ -138,7 +127,9 @@ const UserRequests = () => {
               <td>
                 {item.approved ? "" : item.rejected ? "" : <Button type='button' className='btn-danger my-1' onClick={(e) => {
                   e.preventDefault();
-                  handleDelete(item.$id);
+                  if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
+                    handleDelete(item.$id);
+                  }
                 }}>Törlés</Button>}
                 <Button type='button' className='btn-warning mx-2 me-0 my-1' onClick={(e) => {
                   e.preventDefault();
