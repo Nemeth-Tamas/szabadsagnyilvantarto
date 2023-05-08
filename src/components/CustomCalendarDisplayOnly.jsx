@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import { ThemeContext } from '../ThemeContext';
-import { CalendarContainer } from './CalendarContainer';
+import { CalendarContainer } from '.';
 import Calendar from 'react-calendar';
 import { selectUser } from '../store/userSlice';
 import { useSelector } from 'react-redux';

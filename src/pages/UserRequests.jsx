@@ -1,12 +1,10 @@
-import React, { useContext } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
-import { useEffect } from 'react';
-import { useState } from 'react';
 import axios from 'axios';
-import ModalCalendar from './ModalCalendar';
+import { ModalCalendar } from '../components';
 import { useNavigate } from 'react-router';
 
 const UserRequests = () => {

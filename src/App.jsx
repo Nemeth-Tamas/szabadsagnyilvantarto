@@ -1,13 +1,10 @@
 import { useContext } from 'react';
-import { Home, MainNavbar, Messages } from './components';
+import { Home, Messages, UserRequests, Requests, Login, UsersList } from './pages';
+import { MainNavbar } from './components';
 import { Container } from 'react-bootstrap';
-import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
-import LoginComponent from './components/LoginComponent';
-import UserRequests from './components/UserRequests';
-import Requests from './components/Requests';
-import UsersList from './components/UsersList';
+import './App.css';
 
 function App() {
   const {theme} = useContext(ThemeContext);
@@ -21,7 +18,7 @@ function App() {
             <Route path='/' element={<Home />} />
             <Route path='/messages' element={<Messages />} />
             <Route path='/userrequests' element={<UserRequests />} />
-            <Route path='/login' element={<LoginComponent />} />
+            <Route path='/login' element={<Login />} />
             <Route path='/requests' element={<Requests />} />
             <Route path='/users' element={<UsersList />} />
           </Routes>

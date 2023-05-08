@@ -4,9 +4,7 @@ import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, setUser } from '../store/userSlice';
-import CustomCalendar from './CustomCalendar';
-import CustomCalendarDisplayOnly from './CustomCalendarDisplayOnly';
-import RemainingIndicator from './RemainingIndicator';
+import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator } from '../components';
 import axios from 'axios';
 import { getUserData } from '../appwrite';
 

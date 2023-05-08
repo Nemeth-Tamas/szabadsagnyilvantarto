@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { ThemeContext } from '../ThemeContext';
-import { CalendarContainer } from './CalendarContainer';
+import { CalendarContainer } from '.';
 import Calendar from 'react-calendar';
 
 const CustomCalendar = ({ selectedDates, setSelectedDates }) => {

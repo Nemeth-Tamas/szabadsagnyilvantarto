@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Button, Container, Form, Nav, Navbar } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { getUserData, logout } from '../appwrite';
+import { logout } from '../appwrite';
 import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser, selectUser } from '../store/userSlice';

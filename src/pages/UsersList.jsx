@@ -5,7 +5,7 @@ import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import ModalCalendar from './ModalCalendar';
+import { ModalCalendar } from '../components';
 import bcrypt from 'bcryptjs';
 
 const UsersList = () => {
