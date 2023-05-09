@@ -106,11 +106,11 @@ const UserRequests = () => {
         <thead>
           <tr>
             <th style={{maxWidth: "3%", width: "3%"}}>#</th>
-            <th style={{maxWidth: "33%", width: "33%"}}>Dátumok</th>
+            <th style={{maxWidth: "32%", width: "32%"}}>Dátumok</th>
             <th style={{maxWidth: "9%", width: "9%"}}>Típus</th>
             <th style={{maxWidth: "9%", width: "9%"}}>Státusz</th>
-            <th style={{maxWidth: "33%", width: "33%"}}>Visszautasítás oka</th>
-            <th style={{maxWidth: "14%", width: "14%"}}>Műveletek</th>
+            <th style={{maxWidth: "32%", width: "32%"}}>Visszautasítás oka</th>
+            <th style={{maxWidth: "16%", width: "16%"}}>Műveletek</th>
           </tr>
         </thead>
         <tbody>

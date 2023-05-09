@@ -189,11 +189,11 @@ const Requests = () => {
         <thead>
           <tr>
             <th style={{ maxWidth: "12%", width: "12%" }}>Név</th>
-            <th style={{ maxWidth: "28%", width: "28%" }}>Dátumok</th>
+            <th style={{ maxWidth: "27%", width: "27%" }}>Dátumok</th>
             <th style={{ maxWidth: "9%", width: "9%" }}>Típus</th>
             <th style={{ maxWidth: "9%", width: "9%" }}>Státusz</th>
-            <th style={{ maxWidth: "28%", width: "28%" }}>Visszautasítás oka</th>
-            <th style={{ maxWidth: "14%", width: "14%" }}>Műveletek</th>
+            <th style={{ maxWidth: "27%", width: "27%" }}>Visszautasítás oka</th>
+            <th style={{ maxWidth: "16%", width: "16%" }}>Műveletek</th>
           </tr>
         </thead>
         <tbody>
