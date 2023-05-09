@@ -77,7 +77,7 @@ const MainNavbar = () => {
               <Button variant='outline-info' onClick={switchTheme}>{themeButton}</Button>
             </Form>
             <Nav>
-              {user != null ? (
+              {(user && user.$id) ? (
                 <Button variant='outline-primary' className='me-auto mt-sm-2 mt-md-0' onClick={handleLogout}>Kijelentkezés</Button>
               ) : ""}
             </Nav>
