@@ -18,6 +18,7 @@ const UsersList = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
+  const [userCalendarStats, setUserCalendarStats] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showSendMessage, setShowSendMessage] = useState(false);
   const [sendMessageId, setSendMessageId] = useState('');
@@ -32,7 +33,7 @@ const UsersList = () => {
   const [userMaxdays, setUserMaxdays] = useState(0);
   const [userDaysLeft, setUserDaysLeft] = useState(0);
 
-  const handleCalendarClose = () => { setShowCalendar(false); setUserCalendarData(null); }
+  const handleCalendarClose = () => { setShowCalendar(false); setUserCalendarData(null); setUserCalendarStats(null); }
   const handleCreateUserClose = () => {
     setShowCreateUser(false);
     setUserEmail('');
@@ -89,7 +90,26 @@ const UsersList = () => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
       setUserCalendarData(response.data.szabadsag.documents);
-      setShowCalendar(true);
+
+      // get user max and left days
+      axios.request({
+        method: 'GET',
+        url: `${url}/users/${id}`,
+        headers: {
+          'Content-Type': 'application/json',
+          'submittingId': user.$id
+        }
+      }).then((response) => {
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+        console.log(response);
+        setUserCalendarStats(response.data.user.prefs);
+        setShowCalendar(true);
+      }).catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -265,7 +285,7 @@ const UsersList = () => {
           <Modal.Title>Szabadságok</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <ModalCalendar userData={userCalendarData} />
+          <ModalCalendar userData={userCalendarData} userStats={userCalendarStats} />
         </Modal.Body>
         <Modal.Footer>
           <Button variant={theme} onClick={() => handleCalendarClose()}>

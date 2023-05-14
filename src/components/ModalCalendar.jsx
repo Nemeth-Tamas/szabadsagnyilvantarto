@@ -3,8 +3,9 @@ import CustomCalendarDisplayOnly from './CustomCalendarDisplayOnly'
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
+import { Container } from 'react-bootstrap';
 
-const ModalCalendar = ({ id, userData = null }) => {
+const ModalCalendar = ({ id, userData = null, userStats = null }) => {
   const user = useSelector(selectUser);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [shouldShow, setShouldShow] = useState(false);
@@ -47,7 +48,7 @@ const ModalCalendar = ({ id, userData = null }) => {
           setError(true);
         });
     } else if (userData != null && userData != undefined && id == null) {
-      console.log("HERE",userData);
+      console.log("HERE",userStats);
       let takenDays = new Map();
       userData.forEach((document) => {
         document.dates.forEach(date => {
@@ -64,7 +65,17 @@ const ModalCalendar = ({ id, userData = null }) => {
 
   return (
     shouldShow &&
-    <CustomCalendarDisplayOnly selectedDates={takenDays} context="modal" />
+    <div>
+      {userStats && 
+        <div>
+          <span>Összes szabadság: {userStats?.maxdays}</span><br />
+          <span>Rendelkezésre álló szabadságok: {userStats?.remainingdays}</span><br />
+          <span>Igénybevett szabadságok: {userStats?.maxdays - userStats?.remainingdays}</span><br />
+        </div>
+      }
+
+      <CustomCalendarDisplayOnly selectedDates={takenDays} context="modal" />
+    </div>
   )
 }
 
