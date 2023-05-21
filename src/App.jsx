@@ -11,7 +11,7 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <Container fluid className={theme == "dark" ? "bg-secondary" : ""} style={{ minHeight: '100vh' }}>
+      <Container fluid className={theme == "dark" ? "bg-semidark" : ""} style={{ minHeight: '100vh' }}>
         <Router>
           <MainNavbar />
           <Routes>

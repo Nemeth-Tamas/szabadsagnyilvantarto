@@ -27,18 +27,18 @@ export const CalendarContainer = styled.div`
   button {
     font-size: 1.2rem;
     margin: 3px;
-    background-color: #6f876f;
+    background-color: #608fb0; // 400
     border: 0;
     border-radius: 5px;
     color: white;
     padding: 5px 0;
 
     &:hover {
-      background-color: #556b55;
+      background-color: #457395; // 500
     }
 
     &:active {
-      background-color: #a5c1a5;
+      background-color: #94b6cc; // 300
     }
   }
 
@@ -61,7 +61,7 @@ export const CalendarContainer = styled.div`
 
   .react-calendar__month-view__days__day--weekend {
     color: #dfdfdf;
-    background-color: #4d654d;
+    background-color: #3c5f7e; // 600
   }
 
   .react-calendar__year-view__months, .react-calendar__decade-view__years, .react-calendar__century-view__decades {

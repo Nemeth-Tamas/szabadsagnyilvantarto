@@ -2,3 +2,30 @@ body,
 html {
     height: 100%;
 }
+
+.bg-semidark {
+    background-color: #485159;
+}
+
+.shadow-light {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+.shadow-dark {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.6);
+}
+
+.shadow-mid {
+    box-shadow: 0 0.3rem 1rem rgba(0, 0, 0, 0.35);
+}
+
+.shadow-smc {
+    box-shadow: 0rem 0.2rem 0.4rem rgba(0, 0, 0, 0.35);
+    border: none !important;
+}
+
+.shadow-smc:hover {
+    box-shadow: inset 0rem 0.2rem 0.4rem rgba(0, 0, 0, 0.35);
+    border: none !important;
+}
+

@@ -40,12 +40,12 @@ const Messages = () => {
       </ToastContainer>
 
       <div className='w-100 d-flex'>
-        <Button type='button' className='btn-success mt-2 flex-grow-1' onClick={(e) => {
+        <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
       </div>
-      <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'}>
+      <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
         <thead>
           <tr>
             <th style={{ maxWidth: "3%", width: "3%" }}>#</th>

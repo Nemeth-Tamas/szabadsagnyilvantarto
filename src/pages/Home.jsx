@@ -125,7 +125,7 @@ const Home = () => {
       <Container className='h-100 d-flex flex-column'>
         <Row className='flex-grow-1'>
           <Col className='col-lg-5 col-md-12'>
-            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
               <Card.Body className='d-flex flex-column align-items-center'>
                 <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
                 <Card.Text className='text-sm-center'>
@@ -136,7 +136,7 @@ const Home = () => {
             </Card>
           </Col>
           <Col>
-            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
                 <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
@@ -148,14 +148,14 @@ const Home = () => {
                   <input type="radio" className='btn-check' name='szabadsagTipusa' id='SZSZ' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'SZSZ'} />
                   <label className="btn btn-outline-warning" htmlFor="SZSZ">Szülési szabadság</label>
                 </ButtonGroup>
-                <button type="button" className='btn btn-success mt-3' onClick={handleSubmit}>Küldés</button>
+                <button type="button" className='btn btn-success mt-3 shadow-smc' onClick={handleSubmit}>Küldés</button>
               </Card.Body>
             </Card>
           </Col>
         </Row>
-        <Row className='flex-grow-1'>
-          <Col>
-            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
+        <Row className='flex-grow-1 mb-5'>
+          <Col className='col-lg-7 col-md-12 col-12'>
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Naptár</h1></Card.Title>
                 <CustomCalendarDisplayOnly selectedDates={takenDays} />
@@ -168,8 +168,8 @@ const Home = () => {
               </Card.Body>
             </Card>
           </Col>
-          <Col className='col-lg-5 col-md-12'>
-            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className="mt-5">
+          <Col>
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Statisztika</h1></Card.Title>
                 <Card.Text>

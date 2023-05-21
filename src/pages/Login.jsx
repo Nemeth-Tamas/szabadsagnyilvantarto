@@ -51,7 +51,7 @@ const LoginComponent = () => {
       <Alert show={loginError} variant='danger' onClose={() => setLoginError(false)} dismissible>
         Rossz felhasználónév vagy jelszó
       </Alert>
-      <Card bg={theme} text={theme == "light" ? "dark" : "light"}>
+      <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
         <Card.Body>
           <Card.Title>Bejelentkezés</Card.Title>
           <Form onSubmit={handleSubmit}>
@@ -63,7 +63,7 @@ const LoginComponent = () => {
               <Form.Label>Jelszó</Form.Label>
               <Form.Control type='password' placeholder='Jelszó' />
             </Form.Group>
-            <Button variant='primary' type='subbmit'>
+            <Button variant='primary' type='subbmit' className='shadow-smc'>
               Bejelentkezés
             </Button>
           </Form>

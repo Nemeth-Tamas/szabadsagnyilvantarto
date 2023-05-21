@@ -97,12 +97,12 @@ const UserRequests = () => {
         <ErrorToast error={error} setError={setError} text='Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.' />
       </ToastContainer>
       <div className='w-100 d-flex'>
-        <Button type='button' className='btn-success mt-2 flex-grow-1' onClick={(e) => {
+        <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
       </div>
-      <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'}>
+      <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
         <thead>
           <tr>
             <th style={{maxWidth: "3%", width: "3%"}}>#</th>
@@ -125,18 +125,18 @@ const UserRequests = () => {
               <td>{item.approved ? "Elfogadva" : item.rejected ? "Elutasítva" : "Várakozik"}</td>
               <td>{item.rejectedMessage ? item.rejectedMessage : ""}</td>
               <td>
-                {item.approved ? "" : item.rejected ? "" : <Button type='button' className='btn-danger my-1' onClick={(e) => {
+                {item.approved ? "" : item.rejected ? "" : <Button type='button' className='btn-danger my-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
                   if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
                     handleDelete(item.$id);
                   }
                 }}>Törlés</Button>}
-                <Button type='button' className='btn-warning mx-2 me-0 my-1' onClick={(e) => {
+                <Button type='button' className='btn-warning mx-2 me-0 my-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
                   handleView(item.$id);
                 }}>Megtekintés</Button>
                 {/* Development Function */}
-                <Button type='button' className='btn-info me-0 my-1' onClick={(e) => {
+                <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
                   async function copyToClipboard(text) {
                     if ('clipboard' in navigator) {

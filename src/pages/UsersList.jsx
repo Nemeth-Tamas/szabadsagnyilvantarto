@@ -390,12 +390,12 @@ const UsersList = () => {
       </ToastContainer>
 
       <div className='w-100 d-flex'>
-        <Button type='button' className='btn-success mt-2 flex-grow-1' onClick={(e) => {
+        <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
         {user?.prefs?.perms?.includes('jegyzo.create_user') && (
-          <Button type='button' className='btn-primary mt-2 flex-grow-1 mx-1' onClick={(e) => {
+          <Button type='button' className='btn-primary mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
             e.preventDefault();
             createUser();
           }}>
@@ -403,7 +403,7 @@ const UsersList = () => {
           </Button>
         )}
       </div>
-      <Table className={theme == "dark" ? 'table-dark table-striped mt-2' : 'table-striped mt-2'}>
+      <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
         <thead>
           <tr>
             <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
@@ -419,26 +419,26 @@ const UsersList = () => {
               <td>{u.name}</td>
               <td>{u.email}</td>
               <td>
-                <Button type='button' className='btn-primary my-1 mx-1' onClick={(e) => {
+                <Button type='button' className='btn-primary my-1 mx-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
                   handleView(u.$id);
                 }}>
                   Naptár
                 </Button>
                 {user?.prefs?.perms?.includes('irodavezeto.message_send') && (
-                  <Button type='button' className='btn-success my-1 mx-1' onClick={(e) => {
+                  <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
                     sendMessage(u.$id);
                   }}>Üzenet küzdés</Button>
                 )}
                 {user?.prefs?.perms?.includes('jegyzo.edit_user') && (
-                  <Button type='button' className='btn-warning my-1 mx-1' onClick={(e) => {
+                  <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
                     // editUser(u.$id);
                   }}>Szerkesztés</Button>
                 )}
                 {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
-                  <Button type='button' className='btn-danger my-1 mx-1' onClick={(e) => {
+                  <Button type='button' className='btn-danger my-1 mx-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
                     if (window.confirm("Biztos szeretné a felhasználót?")) deleteUser(u.$id);
                   }}>Törlés</Button>
