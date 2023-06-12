@@ -26,6 +26,7 @@ const UsersList = () => {
 
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
+  const [userPassword2, setUserPassword2] = useState('');
   const [userUsername, setUserUsername] = useState('');
   const [userRole, setUserRole] = useState('');
   const [userManager, setUserManager] = useState('');
@@ -38,6 +39,7 @@ const UsersList = () => {
     setShowCreateUser(false);
     setUserEmail('');
     setUserPassword('');
+    setUserPassword2('');
     setUserUsername('');
     setUserRole('');
     setUserManager('');
@@ -184,6 +186,16 @@ const UsersList = () => {
     if (postUserRole == 'jegyzo') postUserPerms = jegyzoPreset;
     if (postUserRole == 'admin') postUserPerms = adminPreset;
 
+    if (userPassword != userPassword2) {
+      setError(true);
+      return;
+    }
+
+    if (postUserEmail.split('@')[1] != user.email.split('@')[1]) {
+      setError(true);
+      return;
+    }
+
     bcrypt.hash(userPassword.trim(), 10).then((hash) => {
       console.log(hash);
       postUserPassword = hash;
@@ -278,6 +290,11 @@ const UsersList = () => {
     });
   }
 
+  const editUser = (id) => {
+    console.log(id);
+    navigate(`/useredit?userid=${id}`);
+  }
+
   return (
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
@@ -329,6 +346,10 @@ const UsersList = () => {
             <div className="mb-3">
               <label htmlFor="userPassword" className="form-label">Jelszó</label>
               <input type="password" className="form-control" id="userPassword" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="userPassword" className="form-label">Jelszó Mégegyszer</label>
+              <input type="password" className="form-control" id="userPassword2" value={userPassword2} onChange={(e) => setUserPassword2(e.target.value)} />
             </div>
             <div className="mb-3">
               <label htmlFor="userUsername" className="form-label">Név</label>
@@ -434,7 +455,7 @@ const UsersList = () => {
                 {user?.prefs?.perms?.includes('jegyzo.edit_user') && (
                   <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
-                    // editUser(u.$id);
+                    editUser(u.$id);
                   }}>Szerkesztés</Button>
                 )}
                 {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
@@ -442,6 +463,19 @@ const UsersList = () => {
                     e.preventDefault();
                     if (window.confirm("Biztos szeretné a felhasználót?")) deleteUser(u.$id);
                   }}>Törlés</Button>
+                )}
+                {user?.prefs?.perms?.includes('hr.edit_user_perms') && (
+                  <Button type='button' className='btn-info my-1 mx-1 shadow-smc' onClick={(e) => {
+                    e.preventDefault();
+                    async function copyToClipboard(text) {
+                      if ('clipboard' in navigator) {
+                        return await navigator.clipboard.writeText(text);
+                      } else {
+                        return document.execCommand('copy', true, text);
+                      }
+                    }
+                    copyToClipboard(u.$id);
+                  }}>Azonosító másolása</Button>
                 )}
               </td>
             </tr>

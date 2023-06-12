@@ -4,3 +4,4 @@ export { default as UserRequests } from './UserRequests';
 export { default as Requests } from './Requests';
 export { default as Login } from './Login';
 export { default as UsersList} from './UsersList';
+export { default as UserEdit } from './UserEdit';
