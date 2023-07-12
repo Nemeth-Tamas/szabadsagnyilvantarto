@@ -20,6 +20,7 @@ const Home = () => {
   const [notEnoughError, setNotEnoughError] = useState(false);
   const dispatch = useDispatch();
   const [takenDays, setTakenDays] = useState(new Map());
+  const [currentlyOnLeave, setCurrentlyOnLeave] = useState(false);
 
   useEffect(() => {
     console.log(user);
@@ -62,8 +63,10 @@ const Home = () => {
 
     if (selectedDates.length == 0) return;
     if (user?.prefs?.remainingdays - selectedDates.length < 0) {
-      setNotEnoughError(true);
-      return;
+      if (selectedType == 'SZ') {
+        setNotEnoughError(true);
+        return;
+      }
     }
 
     axios.request(options)
@@ -107,6 +110,24 @@ const Home = () => {
             });
           });
           setTakenDays(takenDaysCurrent);
+
+          // TODO: this needs further testing
+          let today = new Date();
+          if (today.getMonth() < 10) {
+            today.setMonth(today.getMonth());
+            today = new Date(today.getTime() - 1);
+          }
+          if (today.getDate() < 10) {
+            today.setDate(today.getDate() + 1);
+            today = new Date(today.getTime() - 1);
+          }
+          
+          let todayString = today.toISOString().split('T')[0];
+          if (takenDaysCurrent.has(todayString) || user.prefs.sick) {
+            setCurrentlyOnLeave(true);
+          } else {
+            setCurrentlyOnLeave(false);
+          }
         }
       })
       .catch((error) => {
@@ -123,6 +144,15 @@ const Home = () => {
         <SuccessToast success={success} setSuccess={setSuccess} title='Elküldve' text='Kérelmét sikeresen elküldtük.' />
       </ToastContainer>
       <Container className='h-100 d-flex flex-column'>
+        {currentlyOnLeave && <Row className='flex-grow-1'>
+          <Col className='col-12'>
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
+              <Card.Body className='d-flex flex-column align-items-center'>
+                <Card.Title><h1 className='display-5 text-center text-danger'>Jelenleg szabadságon</h1></Card.Title>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>}
         <Row className='flex-grow-1'>
           <Col className='col-lg-5 col-md-12'>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>

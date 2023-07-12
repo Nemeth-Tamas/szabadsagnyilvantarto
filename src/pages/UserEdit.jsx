@@ -20,6 +20,7 @@ const UserEdit = () => {
   const userID = new URLSearchParams(search).get('userid');
 
   // User data
+  const [sick, setSick] = useState(false);
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [manager, setManager] = useState('');
@@ -75,6 +76,7 @@ const UserEdit = () => {
       setRole(response.data.user.prefs.role);
       setRemainingDays(response.data.user.prefs.remainingdays);
       setMaxDays(response.data.user.prefs.maxdays);
+      setSick(response.data.user.prefs.sick);
 
       setLoading(false);
     }).catch((error) => {
@@ -133,7 +135,7 @@ const UserEdit = () => {
   }
   const updatePerms = (e) => {
     e.preventDefault();
-    
+
     axios.request({
       method: 'PATCH',
       url: `${url}/users/${userID}/perms`,
@@ -253,6 +255,31 @@ const UserEdit = () => {
     });
   };
 
+  const updateSick = (e) => {
+    e.preventDefault();
+
+    axios.request({
+      method: 'PATCH',
+      url: `${url}/users/${userID}/sick`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      },
+      data: {
+        sick: sick
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      if (response.data.status == 'fail') setError(true);
+      console.log(response);
+
+      setSuccess(true);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
+  };
+
   return (
     <>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
@@ -269,26 +296,32 @@ const UserEdit = () => {
           {!loading && (
             <Card.Body>
               <Card.Title>Felhasználó azonosító: {userID}</Card.Title>
-
               <Form>
+                <Form.Group className="mb-3" controlId="formBasicName">
+                  <Form.Label>Táppénz</Form.Label>
+                  <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }}>
+                    <Form.Check type="checkbox" label="Táppénz" checked={sick} onChange={(e) => setSick(e.target.checked)} />
+                    <Button variant="success" onClick={updateSick} className='ms-1'>Mentés</Button>
+                  </div>
+                </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicName">
                   <Form.Label>Név</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="text" placeholder="Név" value={name} style={{maxWidth: '20rem'}} onChange={(e) => setName(e.target.value)} />
+                    <Form.Control type="text" placeholder="Név" value={name} style={{ maxWidth: '20rem' }} onChange={(e) => setName(e.target.value)} />
                     <Button variant="success" onClick={updateName} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Email cím</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="email" placeholder="Felhasználónév" value={username} style={{maxWidth: '20rem'}} onChange={(e) => setUsername(e.target.value)} />
+                    <Form.Control type="email" placeholder="Felhasználónév" value={username} style={{ maxWidth: '20rem' }} onChange={(e) => setUsername(e.target.value)} />
                     <Button variant="success" onClick={updateUsername} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Manager</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="text" placeholder="Felettes azonosítója" value={manager} style={{maxWidth: '20rem'}} onChange={(e) => setManager(e.target.value)} />
+                    <Form.Control type="text" placeholder="Felettes azonosítója" value={manager} style={{ maxWidth: '20rem' }} onChange={(e) => setManager(e.target.value)} />
                     <Button variant="success" onClick={updateManager} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
@@ -310,7 +343,7 @@ const UserEdit = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Szerepkör</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Select value={role} style={{maxWidth: '20rem'}} onChange={(e) => setRole(e.target.value)}>
+                    <Form.Select value={role} style={{ maxWidth: '20rem' }} onChange={(e) => setRole(e.target.value)}>
                       {roles.map((role, index) => (
                         <option key={index} value={role}>{role}</option>
                       ))}
@@ -321,14 +354,14 @@ const UserEdit = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Hátralévő napok</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="number" placeholder="Hátralévő napok" value={remainingDays} style={{maxWidth: '20rem'}} onChange={(e) => setRemainingDays(e.target.value)} />
+                    <Form.Control type="number" placeholder="Hátralévő napok" value={remainingDays} style={{ maxWidth: '20rem' }} onChange={(e) => setRemainingDays(e.target.value)} />
                     <Button variant="success" onClick={updateRemainingDays} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Maximális napok</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="number" placeholder="Maximális napok" value={maxDays} style={{maxWidth: '20rem'}} onChange={(e) => setMaxDays(e.target.value)} />
+                    <Form.Control type="number" placeholder="Maximális napok" value={maxDays} style={{ maxWidth: '20rem' }} onChange={(e) => setMaxDays(e.target.value)} />
                     <Button variant="success" onClick={updateMaxDays} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
