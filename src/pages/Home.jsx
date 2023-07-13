@@ -148,7 +148,9 @@ const Home = () => {
           <Col className='col-12'>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
               <Card.Body className='d-flex flex-column align-items-center'>
-                <Card.Title><h1 className='display-5 text-center text-danger'>Jelenleg szabadságon</h1></Card.Title>
+                {user?.prefs?.sick == true
+                ? <Card.Title><h1 className='display-5 text-center text-danger'>Jelenleg táppénzen</h1></Card.Title>
+                : <Card.Title><h1 className='display-5 text-center text-danger'>Jelenleg szabadságon</h1></Card.Title>}
               </Card.Body>
             </Card>
           </Col>
