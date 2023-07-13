@@ -5,7 +5,7 @@ import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import { ErrorToast, ModalCalendar } from '../components';
+import { ErrorToast, BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
 
 const Requests = () => {
   const { theme } = useContext(ThemeContext);
@@ -177,7 +177,7 @@ const Requests = () => {
       </Modal>
 
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
-        <ErrorToast error={error} setError={setError} text='Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.' />
+        <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.ServerErrorFailedToLoadRequests} />
       </ToastContainer>
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {

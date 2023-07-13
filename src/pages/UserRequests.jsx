@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
+import { Button, Modal, Table, ToastContainer } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
-import { ErrorToast, ModalCalendar } from '../components';
+import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
 import { useNavigate } from 'react-router';
 
 const UserRequests = () => {
@@ -94,7 +94,7 @@ const UserRequests = () => {
         </Modal.Footer>
       </Modal>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
-        <ErrorToast error={error} setError={setError} text='Nem sikerült lekérni a kérelmeket. Kérjük próbálja újra később.' />
+        <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.ServerErrorFailedToLoadRequests} />
       </ToastContainer>
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {

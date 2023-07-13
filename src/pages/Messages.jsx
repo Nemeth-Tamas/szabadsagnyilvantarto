@@ -3,8 +3,8 @@ import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
-import { Button, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import { ErrorToast } from '../components';
+import { Button, Table, ToastContainer } from 'react-bootstrap';
+import { BetterErrorToast, ErrorCodes } from '../components';
 
 const Messages = () => {
   const { theme } = useContext(ThemeContext);
@@ -36,7 +36,7 @@ const Messages = () => {
   return (
     <>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
-        <ErrorToast error={error} setError={setError} text='Nem sikerült lekérni az üzeneteket. Kérjük próbálja újra később.' />
+        <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.ServerErrorFailedToLoadMessages} />
       </ToastContainer>
 
       <div className='w-100 d-flex'>

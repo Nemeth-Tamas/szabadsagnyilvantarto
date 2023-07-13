@@ -5,7 +5,7 @@ import { selectUser } from '../store/userSlice';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { Button, Card, Form, ToastContainer } from 'react-bootstrap';
 import axios from 'axios';
-import { ErrorToast, SuccessToast } from '../components';
+import { BetterErrorToast, ErrorCodes, SuccessToast } from '../components';
 
 const UserEdit = () => {
   const { theme } = useContext(ThemeContext);
@@ -283,7 +283,7 @@ const UserEdit = () => {
   return (
     <>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
-        <ErrorToast error={error} setError={setError} text="Nem sikerült a felhasználó betöltése." />
+        <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.FailedToLoadUser} />
         <SuccessToast success={success} setSuccess={setSuccess} title="Mentve" text={`Adat sikeresen mentve.`} />
       </ToastContainer>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className='mt-2 pb-2'>

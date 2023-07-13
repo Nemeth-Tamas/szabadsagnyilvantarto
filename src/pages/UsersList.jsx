@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import { ModalCalendar, ErrorToast, SuccessToast } from '../components';
+import { Button, Modal, Table, ToastContainer } from 'react-bootstrap';
+import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast } from '../components';
 import bcrypt from 'bcryptjs';
 
 const UsersList = () => {
@@ -13,6 +13,7 @@ const UsersList = () => {
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
   const [error, setError] = useState(false);
+  const [errorCode, setErrorCode] = useState(ErrorCodes.UnknownError);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const navigate = useNavigate();
   const [showCalendar, setShowCalendar] = useState(false);
@@ -64,6 +65,7 @@ const UsersList = () => {
   }, []);
 
   const handleUpdate = () => {
+    setErrorCode(ErrorCodes.FailedToLoadUsers);
     axios.request({
       method: 'GET',
       url: `${url}/users`,
@@ -85,6 +87,7 @@ const UsersList = () => {
   };
   // TODO: Everywhere change setError to return
   const handleView = (id) => {
+    setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
     axios.request({
       method: 'GET',
       url: `${url}/szabadsagok/${id}`,
@@ -98,6 +101,7 @@ const UsersList = () => {
       setUserCalendarData(response.data.szabadsag.documents);
 
       // get user max and left days
+      setErrorCode(ErrorCodes.FailedToLoadUser);
       axios.request({
         method: 'GET',
         url: `${url}/users/${id}`,
@@ -113,16 +117,19 @@ const UsersList = () => {
         setShowCalendar(true);
       }).catch((error) => {
         console.log(error);
+        setErrorCode(ErrorCodes.FailedToLoadUser);
         setError(true);
       });
 
     }).catch((error) => {
       console.log(error);
+      setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
       setError(true);
     });
   };
 
   const handleGetReport = () => {
+    setErrorCode(ErrorCodes.UnableToCreateReport);
     axios.request({
       method: 'GET',
       url: `${url}/users/report`,
@@ -150,6 +157,7 @@ const UsersList = () => {
   }
 
   const deleteUser = (id) => {
+    setErrorCode(ErrorCodes.ErrorWhileDeletingUser);
     axios.request({
       method: 'DELETE',
       url: `${url}/users/${id}`,
@@ -184,12 +192,14 @@ const UsersList = () => {
 
     if (userRole == '') {
       console.log('userRole is empty');
+      setErrorCode(ErrorCodes.UserRoleEmpty);
       setError(true);
       return;
     }
 
     if (userManager == '') {
       console.log('userManager is empty');
+      setErrorCode(ErrorCodes.UserManagerEmpty);
       setError(true);
       return;
     }
@@ -221,35 +231,42 @@ const UsersList = () => {
 
     if (userPassword != userPassword2) {
       console.log('passwords dont match');
+      setErrorCode(ErrorCodes.PasswordsNotMatch);
       setError(true);
       return;
     }
 
     if (postUserEmail.split('@')[1] != user.email.split('@')[1]) {
       console.log('email domains dont match');
+      setErrorCode(ErrorCodes.EmailDomainDoesNotMatch);
       setError(true);
       return;
     }
 
+    setErrorCode(ErrorCodes.FailedToEncryptPassword);
     bcrypt.hash(userPassword.trim(), 10).then((hash) => {
       console.log(hash);
       postUserPassword = hash;
 
       if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserPerms == '' || postUserMaxdays == '' || postUserDaysLeft == '') {
+        setErrorCode(ErrorCodes.EmptyField);
         setError(true);
         return;
       }
 
       if (postUserEmail.length < 5 || postUserPassword.length < 5) {
+        setErrorCode(ErrorCodes.UsernameOrPasswordTooShort);
         setError(true);
         return;
       }
 
       if (!postUserEmail.includes('@') || !postUserEmail.includes('.')) {
+      setErrorCode(ErrorCodes.UsernameDoesNotContainAt);
         setError(true);
         return;
       }
 
+      setErrorCode(ErrorCodes.FailedToRegisterUser);
       axios.request({
         method: 'POST',
         url: `${url}/users/register`,
@@ -281,6 +298,7 @@ const UsersList = () => {
 
     }).catch((error) => {
       console.log(error);
+      setErrorCode(ErrorCodes.FailedToEncryptPassword);
       setError(true);
     });
 
@@ -297,10 +315,12 @@ const UsersList = () => {
     let postMessageDate = new Date().toISOString();
 
     if (postMessageContent == '') {
+      setErrorCode(ErrorCodes.EmptyField);
       setError(true);
       return;
     }
 
+    setErrorCode(ErrorCodes.FailedToSendMessage);
     axios.request({
       method: 'POST',
       url: `${url}/uzenetek/create`,
@@ -361,7 +381,7 @@ const UsersList = () => {
             </thead>
             <tbody>
               {reportData != null ? reportData.map((item, index) => {
-                if (item.isSick) return <h1>test</h1>;
+                if (item.isSick) return;
                 return (
                   <tr key={item.userId + index}>
                     <td>{index + 1}</td>
@@ -498,7 +518,7 @@ const UsersList = () => {
       </Modal>
 
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
-        <ErrorToast error={error} setError={setError} text="Nem sikerült a kérelem teljesítése." />
+        <BetterErrorToast error={error} setError={setError} errorText={errorCode} />
         <SuccessToast success={success} setSuccess={setSuccess} title="Létrehozva" text={`Felhasználó sikeresen létrehozva.`} />
       </ToastContainer>
 
@@ -518,7 +538,7 @@ const UsersList = () => {
         <Button type='button' className='btn-secondary mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           handleGetReport();
-        }}>Riport lekérése</Button>
+        }}>Jelentés lekérése</Button>
       </div>
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
         <thead>

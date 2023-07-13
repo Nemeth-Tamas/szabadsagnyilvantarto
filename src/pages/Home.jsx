@@ -4,7 +4,7 @@ import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, setUser } from '../store/userSlice';
-import { CustomCalendar, CustomCalendarDisplayOnly, ErrorToast, RemainingIndicator, SuccessToast } from '../components';
+import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes } from '../components';
 import axios from 'axios';
 import { getUserData } from '../appwrite';
 
@@ -14,6 +14,7 @@ const Home = () => {
   const user = useSelector(selectUser);
   const navigate = useNavigate();
   const [error, setError] = useState(false);
+  const [errorCode, setErrorCode] = useState(ErrorCodes.RequestNotSent);
   const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
@@ -64,11 +65,13 @@ const Home = () => {
     if (selectedDates.length == 0) return;
     if (user?.prefs?.remainingdays - selectedDates.length < 0) {
       if (selectedType == 'SZ') {
-        setNotEnoughError(true);
+        setErrorCode(ErrorCodes.NotEnoughLeaves);
+        setError(true);
         return;
       }
     }
 
+    setErrorCode(ErrorCodes.RequestNotSent);
     axios.request(options)
       .then((response) => {
         console.log("HERE:", response);
@@ -98,6 +101,7 @@ const Home = () => {
       }
     }
 
+    setErrorCode(ErrorCodes.ServerError);
     axios.request(options)
       .then((response) => {
         console.log(response);
@@ -139,8 +143,7 @@ const Home = () => {
   return (
     <>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
-        <ErrorToast error={error} setError={setError} text='Nem sikerült elküldeni a kérelmét. Kérjük próbálja újra később.' />
-        <ErrorToast error={notEnoughError} setError={setNotEnoughError} text='Nem sikerült elküldeni a kérelmét. Nincs elég szabadsága.' />
+        <BetterErrorToast error={error} setError={setError} errorText={errorCode} />
         <SuccessToast success={success} setSuccess={setSuccess} title='Elküldve' text='Kérelmét sikeresen elküldtük.' />
       </ToastContainer>
       <Container className='h-100 d-flex flex-column'>
