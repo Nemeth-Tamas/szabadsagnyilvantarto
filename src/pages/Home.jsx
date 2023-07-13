@@ -18,7 +18,6 @@ const Home = () => {
   const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
-  const [notEnoughError, setNotEnoughError] = useState(false);
   const dispatch = useDispatch();
   const [takenDays, setTakenDays] = useState(new Map());
   const [currentlyOnLeave, setCurrentlyOnLeave] = useState(false);
@@ -60,8 +59,6 @@ const Home = () => {
       }
     }
 
-    console.log(options);
-
     if (selectedDates.length == 0) return;
     if (user?.prefs?.remainingdays - selectedDates.length < 0) {
       if (selectedType == 'SZ') {
@@ -71,7 +68,20 @@ const Home = () => {
       }
     }
 
+    let doNotProceed = false;
+
+    takenDays.forEach((type, date) => {
+      console.log(date, type);
+      if (selectedDates.includes(date)) {
+        setErrorCode(ErrorCodes.AlreadyOnLeave);
+        setError(true);
+        doNotProceed = true;
+        return;
+      }
+    })
+
     setErrorCode(ErrorCodes.RequestNotSent);
+    if (doNotProceed) return;
     axios.request(options)
       .then((response) => {
         console.log("HERE:", response);

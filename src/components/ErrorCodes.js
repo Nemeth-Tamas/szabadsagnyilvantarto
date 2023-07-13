@@ -20,6 +20,7 @@ const ErrorCodes = {
     FailedToRegisterUser: "Nem sikerült regisztrálni a felhasználót. Kérjük próbálja újra később.",
     FailedToEncryptPassword: "Nem sikerült titkosítani a jelszót. Kérjük próbálja újra később.",
     FailedToSendMessage: "Nem sikerült elküldeni az üzenetet. Kérjük próbálja újra később.",
+    AlreadyOnLeave: "A kijelölt időszakban már szabadságon van.",
 }
 
 export default ErrorCodes;

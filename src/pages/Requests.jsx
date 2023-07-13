@@ -5,7 +5,7 @@ import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
-import { ErrorToast, BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
+import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
 
 const Requests = () => {
   const { theme } = useContext(ThemeContext);
