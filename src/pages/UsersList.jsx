@@ -17,6 +17,7 @@ const UsersList = () => {
   const navigate = useNavigate();
   const [showCalendar, setShowCalendar] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showSickTable, setShowSickTable] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
@@ -134,6 +135,11 @@ const UsersList = () => {
       if (response.data.status == 'fail') setError(true);
 
       console.log(response);
+      
+      setShowSickTable(false);
+      response.data.report.forEach((user) => {
+        if (user.isSick) setShowSickTable(true);
+      });
 
       setReportData(response.data.report);
       setShowReport(true);
@@ -351,34 +357,44 @@ const UsersList = () => {
                 <th>#</th>
                 <th>Név</th>
                 <th>Napok</th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
               {reportData != null ? reportData.map((item, index) => {
+                if (item.isSick) return <h1>test</h1>;
                 return (
-                  <tr key={index}>
+                  <tr key={item.userId + index}>
                     <td>{index + 1}</td>
                     <td>{item.name}</td>
                     <td>{item.dates}</td>
-                    <td>
-                      <Button type='button' className='btn-info my-1 mx-1 shadow-smc' onClick={(e) => {
-                        e.preventDefault();
-                        async function copyToClipboard(text) {
-                          if ('clipboard' in navigator) {
-                            return await navigator.clipboard.writeText(text);
-                          } else {
-                            return document.execCommand('copy', true, text);
-                          }
-                        }
-                        copyToClipboard(u.$id);
-                      }}>Azonosító másolása</Button>
-                    </td>
                   </tr>
                 )
               }) : <></>}
             </tbody>
           </Table>
+          {showSickTable && <>
+          <h1>Jelenleg táppénzen</h1>
+          <Table striped bordered hover variant={theme}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Név</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportData != null ? reportData.map((item, index) => {
+                if (item.isSick) {
+                  return (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{item.name}</td>
+                    </tr>
+                  )
+                }
+              }) : <></>}
+            </tbody>
+          </Table>
+          </>}
         </Modal.Body>
         <Modal.Footer>
           <Button variant={theme} onClick={() => handleReportClose()}>
@@ -515,7 +531,7 @@ const UsersList = () => {
         </thead>
         <tbody>
           {data.map((u, index) => (
-            <tr key={u.$id + index}>
+            <tr key={u.$id + index} className={`${u.prefs.sick ? 'table-danger' : ''}`}>
               <td>{index + 1}</td>
               <td>{u.name}</td>
               <td>{u.email}</td>
