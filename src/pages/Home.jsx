@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Badge, Button, ButtonGroup, Card, Col, Container, Row, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
+import { Badge, Button, ButtonGroup, Card, Col, Container, FormSelect, Row, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,6 +12,7 @@ const Home = () => {
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
+  const [data, setData] = useState([]);
   const navigate = useNavigate();
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.RequestNotSent);
@@ -21,6 +22,29 @@ const Home = () => {
   const dispatch = useDispatch();
   const [takenDays, setTakenDays] = useState(new Map());
   const [currentlyOnLeave, setCurrentlyOnLeave] = useState(false);
+  const [submittingId, setSubmittingId] = useState(user?.$id);
+
+  const handleUpdate = () => {
+    setErrorCode(ErrorCodes.FailedToLoadUsers);
+    axios.request({
+      method: 'GET',
+      url: `${url}/users`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      }
+    })
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+        console.log(response);
+        setData(response.data.usersList.users);
+      })
+      .catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+  };
 
   useEffect(() => {
     console.log(user);
@@ -39,6 +63,7 @@ const Home = () => {
         });
 
       getUserDays();
+      handleUpdate();
     }
   }, []);
 
@@ -50,10 +75,11 @@ const Home = () => {
       url: `${url}/kerelmek/add`,
       headers: {
         'Content-Type': 'application/json',
-        'submittingId': user.$id
+        'submittingId': submittingId
       },
       data: {
-        managerId: user?.prefs?.manager,
+        // managerId: user?.prefs?.manager,
+        managerId: data.find((user) => user.$id == submittingId)?.prefs?.manager,
         type: selectedType,
         dates: selectedDates
       }
@@ -150,6 +176,12 @@ const Home = () => {
       });
   }
 
+  const handleOnUserSelect = (e) => {
+    e.preventDefault();
+    console.log(e.target.value);
+    setSubmittingId(e.target.value);
+  }
+
   return (
     <>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
@@ -185,6 +217,16 @@ const Home = () => {
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
                 <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
+                { data != [] &&
+                  // <p>{JSON.stringify(data)}</p>
+                  <FormSelect value={submittingId} onChange={handleOnUserSelect}>
+                    <option value={user?.$id}>Saját</option>
+                    {data.map((guser) => {
+                      if(guser.$id != user.$id) 
+                        return <option key={guser.$id} value={guser.$id}>{guser.name}</option>
+                    })}
+                  </FormSelect>
+                }
                 <ButtonGroup role='group' aria-label='Szabadság típusa' className='d-flex justify-content-center mt-3'>
                   <input type="radio" className='btn-check' name='szabadsagTipusa' id='SZ' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'SZ'} />
                   <label className="btn btn-outline-secondary" htmlFor="SZ">Szabadság</label>
