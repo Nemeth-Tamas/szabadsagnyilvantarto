@@ -36,7 +36,7 @@ const UsersList = () => {
   const [userManager, setUserManager] = useState('');
   const [userPerms, setUserPerms] = useState([]);
   const [userMaxdays, setUserMaxdays] = useState(0);
-  const [userDaysLeft, setUserDaysLeft] = useState(0);
+  const [userDaysLeft, setUserDaysLeft] = useState(-1);
 
   const handleCalendarClose = () => { setShowCalendar(false); setUserCalendarData(null); setUserCalendarStats(null); }
   const handleReportClose = () => { setShowReport(false); setReportData(null) }
@@ -50,7 +50,7 @@ const UsersList = () => {
     setUserManager('');
     setUserPerms([]);
     setUserMaxdays(0);
-    setUserDaysLeft(0);
+    setUserDaysLeft(-1);
   }
   const handleSendMessageClose = () => { setShowSendMessage(false); setSendMessageId(''); setSendMessageText(''); }
 
@@ -266,6 +266,8 @@ const UsersList = () => {
         return;
       }
 
+      if (userDaysLeft == -1) postUserDaysLeft = postUserMaxdays;
+
       setErrorCode(ErrorCodes.FailedToRegisterUser);
       axios.request({
         method: 'POST',
@@ -475,7 +477,7 @@ const UsersList = () => {
                 </div>
                 <div className="mb-3">
                   <label htmlFor="userDaysLeft" className='form-label'>Hátralévő szabadság száma</label>
-                  <input type="number" min={0} max={200} className="form-control" id="userDaysLeft" value={userDaysLeft} onChange={(e) => setUserDaysLeft(e.target.value)} />
+                  <input type="number" min={-1} max={200} className="form-control" id="userDaysLeft" value={userDaysLeft} onChange={(e) => setUserDaysLeft(e.target.value)} />
                 </div>
               </>
             )}
