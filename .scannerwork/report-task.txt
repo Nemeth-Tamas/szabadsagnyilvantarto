@@ -1,0 +1,6 @@
+projectKey=szabadsag_ny_f
+serverUrl=https://sonarqube.ntsexp.site
+serverVersion=10.2.1.78527
+dashboardUrl=https://sonarqube.ntsexp.site/dashboard?id=szabadsag_ny_f
+ceTaskId=AYs3qdiNJnS1ybol4hUo
+ceTaskUrl=https://sonarqube.ntsexp.site/api/ce/task?id=AYs3qdiNJnS1ybol4hUo

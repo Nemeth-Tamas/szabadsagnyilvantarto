@@ -23,6 +23,7 @@ const Home = () => {
   const [takenDays, setTakenDays] = useState(new Map());
   const [currentlyOnLeave, setCurrentlyOnLeave] = useState(false);
   const [submittingId, setSubmittingId] = useState(user?.$id);
+  const [planFilledOut, setPlanFilledOut] = useState(true);
 
   const handleUpdate = () => {
     setErrorCode(ErrorCodes.FailedToLoadUsers);
@@ -63,9 +64,40 @@ const Home = () => {
         });
 
       getUserDays();
+      getUserPlanFilled();
       handleUpdate();
     }
   }, []);
+
+  // TODO: Remove this
+  const handleDownloadTEMP = (e) => {
+    e.preventDefault();
+    let options = {
+      method: 'GET',
+      url: `${url}/plans/${submittingId}/excel`,
+      headers: {
+        'submittingId': submittingId
+      },
+      responseType: 'arraybuffer'
+    }
+
+    axios.request(options).then((response) => {
+      // Download the returned excel file from buffer
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      let date = new Date();
+      let dateString = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+'_'+date.getHours()+'-'+date.getMinutes()+'-'+date.getSeconds();
+      let filename = user.name.replace(/ /g, '-') + '_' + dateString + '.xlsx';
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+
+      link.click();
+      link.remove();
+
+      console.log(response);
+    }).catch((error) => {console.log(error)});
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -124,6 +156,32 @@ const Home = () => {
 
   const handleRadioChange = (e) => {
     setSelectedType(e.target.id);
+  }
+
+  const getUserPlanFilled = () => {
+    let options = {
+      method: 'GET',
+      url: `${url}/plans/${submittingId}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      }
+    }
+
+    setErrorCode(ErrorCodes.ServerError);
+    axios.request(options)
+      .then((response) => {
+        console.log(response);
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+        if (response.data.status == 'success') {
+          setPlanFilledOut(response.data.filledOut);
+          console.log(response.data.filledOut);
+        }
+      }).catch((error) => {
+        console.log(error);
+        setError(true);
+      });
   }
 
   const getUserDays = () => {
@@ -200,6 +258,16 @@ const Home = () => {
             </Card>
           </Col>
         </Row>}
+        {!planFilledOut && <Row className='flex-grow-1'>
+          <Col className='col-12'>
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
+              <Card.Body className='d-flex flex-column align-items-center'>
+                <Card.Title><h1 className='display-5 text-center text-danger'>Még nincs kitöltve a szabadság terve.</h1></Card.Title>
+                <Button variant='success' onClick={(e) => navigate('/plan')}>Kitöltés most!</Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>}
         <Row className='flex-grow-1'>
           <Col className='col-lg-5 col-md-12'>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
@@ -209,6 +277,7 @@ const Home = () => {
                   Rendelkezésre álló szabadságok száma / Összes szabadság száma
                 </Card.Text>
                 <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainingdays} />
+                <Button variant='info' onClick={(e) => handleDownloadTEMP(e)}>Download TEMP</Button>
               </Card.Body>
             </Card>
           </Col>
