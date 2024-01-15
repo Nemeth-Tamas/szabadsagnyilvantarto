@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { Button, Modal, Table, ToastContainer } from 'react-bootstrap';
+import { Button, ButtonGroup, Modal, Table, ToastContainer } from 'react-bootstrap';
 import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast } from '../components';
 import bcrypt from 'bcryptjs';
 
@@ -27,6 +27,8 @@ const UsersList = () => {
   const [showSendMessage, setShowSendMessage] = useState(false);
   const [sendMessageId, setSendMessageId] = useState('');
   const [sendMessageText, setSendMessageText] = useState('');
+  const [uidForDownload, setUidForDownload] = useState('');
+  const [unameForDownload, setUnameForDownload] = useState('');
 
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
@@ -86,7 +88,7 @@ const UsersList = () => {
       });
   };
   // TODO: Everywhere change setError to return
-  const handleView = (id) => {
+  const handleView = (id, name) => {
     setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
     axios.request({
       method: 'GET',
@@ -99,6 +101,8 @@ const UsersList = () => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
       setUserCalendarData(response.data.szabadsag.documents);
+      setUidForDownload(id);
+      setUnameForDownload(name)
 
       // get user max and left days
       setErrorCode(ErrorCodes.FailedToLoadUser);
@@ -170,6 +174,26 @@ const UsersList = () => {
       if (response.data.status == 'fail') setError(true);
       console.log(response);
       handleUpdate();
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
+  };
+  
+  const deletePlan = (id) => {
+    if (id == "reset") setErrorCode(ErrorCodes.ErrorWhileDeletingAllPlans);
+    else setErrorCode(ErrorCodes.ErrorWhileDeletingSignlePlan);
+    axios.request({
+      method: 'DELETE',
+      url: `${url}/plans/${id}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      if (response.data.status == 'fail') setError(true);
+      console.log(response);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -352,6 +376,35 @@ const UsersList = () => {
     navigate(`/useredit?userid=${id}`);
   }
 
+  const handleDownload = (e, uid) => {
+    e.preventDefault();
+    let options = {
+      method: 'GET',
+      url: `${url}/plans/${uid}/excel`,
+      headers: {
+        'submittingId': user.$id
+      },
+      responseType: 'arraybuffer'
+    }
+
+    axios.request(options).then((response) => {
+      // Download the returned excel file from buffer
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      let date = new Date();
+      let dateString = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+'_'+date.getHours()+'-'+date.getMinutes()+'-'+date.getSeconds();
+      let filename = unameForDownload.replace(/ /g, '-') + '_' + dateString + '.xlsx';
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+
+      link.click();
+      link.remove();
+
+      console.log(response);
+    }).catch((error) => {console.log(error)});
+  }
+
   return (
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
@@ -362,6 +415,9 @@ const UsersList = () => {
           <ModalCalendar userData={userCalendarData} userStats={userCalendarStats} />
         </Modal.Body>
         <Modal.Footer>
+          <Button variant={theme} onClick={(e) => handleDownload(e, uidForDownload)}>
+            Terv letöltése
+          </Button>
           <Button variant={theme} onClick={() => handleCalendarClose()}>
             Bezárás
           </Button>
@@ -541,6 +597,12 @@ const UsersList = () => {
           e.preventDefault();
           handleGetReport();
         }}>Jelentés lekérése</Button>
+        {(user?.prefs?.perms?.includes('hr.edit_user_current_state') && new Date().getMonth() == 0) && (
+          <Button type='button' className='btn-danger mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
+            e.preventDefault();
+            if (window.confirm("Biztos szeretné az összes felhasználó szabadság tervét törölni?")) deletePlan('reset');
+          }}>Szabadság tervek törlése</Button>
+        )}
       </div>
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
         <thead>
@@ -560,7 +622,7 @@ const UsersList = () => {
               <td>
                 <Button type='button' className='btn-primary my-1 mx-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
-                  handleView(u.$id);
+                  handleView(u.$id, u.name);
                 }}>
                   Naptár
                 </Button>
@@ -576,11 +638,22 @@ const UsersList = () => {
                     editUser(u.$id);
                   }}>Szerkesztés</Button>
                 )}
-                {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
-                  <Button type='button' className='btn-danger my-1 mx-1 shadow-smc' onClick={(e) => {
-                    e.preventDefault();
-                    if (window.confirm("Biztos szeretné a felhasználót?")) deleteUser(u.$id);
-                  }}>Törlés</Button>
+                {(user?.prefs?.perms?.includes('hr.edit_user_current_state') || user?.prefs?.perms?.includes('jegyzo.delete_user')) && (
+                  <ButtonGroup aria-label='törlés' className='my-1 mx-1 shadow-smc'>
+                    <a href='#' role='button' className='btn btn-danger btn-xs' id='label-btn' aria-disabled='true'>Törlés</a>
+                    {user?.prefs?.perms?.includes('hr.edit_user_current_state') && (
+                      <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
+                        e.preventDefault();
+                        if (window.confirm("A törléssel a teljes éves szabadság terv törlésre kerül a felhasználó számára!\nBiztos szeretné a felhasználó szabadság tervét törölni?")) deletePlan(u.$id);
+                      }}>Terv</Button>
+                    )}
+                    {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
+                      <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
+                        e.preventDefault();
+                        if (window.confirm("Biztos szeretné a felhasználót törölni?")) deleteUser(u.$id);
+                      }}>Felhasználó</Button>
+                    )}
+                  </ButtonGroup>
                 )}
                 {user?.prefs?.perms?.includes('hr.edit_user_perms') && (
                   <Button type='button' className='btn-info my-1 mx-1 shadow-smc' onClick={(e) => {
@@ -593,7 +666,7 @@ const UsersList = () => {
                       }
                     }
                     copyToClipboard(u.$id);
-                  }}>Azonosító másolása</Button>
+                  }}></Button>
                 )}
               </td>
             </tr>

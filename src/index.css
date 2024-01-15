@@ -29,3 +29,10 @@ html {
     border: none !important;
 }
 
+#label-btn {
+    pointer-events: none;
+}
+
+.btn-border-left {
+    border-left: 1px solid #e9ecef !important;
+}

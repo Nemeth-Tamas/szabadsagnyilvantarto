@@ -10,6 +10,8 @@ const ErrorCodes = {
     FailedToLoadSzabadsag: "Nem sikerült betölteni a szabadságokat.",
     UnableToCreateReport: "Nem sikerült létrehozni a jelentést.",
     ErrorWhileDeletingUser: "Hiba történt a felhasználó törlése közben.",
+    ErrorWhileDeletingSinglePlan: "Hiba történt a felhasználó szabadság terve törlése közben.",
+    ErrorWhileDeletingAllPlans: "Hiba történt a felhasználók szabadság tervei törlése közben.",
     UserRoleEmpty: "A felhasználói szerepkör nem lehet üres.",
     UserManagerEmpty: "A felhasználói felettese nem lehet üres.",
     PasswordsNotMatch: "A két jelszó nem egyezik.",
