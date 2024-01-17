@@ -65,7 +65,9 @@ const Home = () => {
 
       getUserDays();
       getUserPlanFilled();
-      handleUpdate();
+      if (user?.prefs?.perms?.includes("hr.edit_user_current_state")) {
+        handleUpdate();
+      }
     }
   }, []);
 
@@ -248,7 +250,6 @@ const Home = () => {
                   Rendelkezésre álló szabadságok száma / Összes szabadság száma
                 </Card.Text>
                 <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainingdays} />
-                <Button variant='info' onClick={(e) => handleDownloadTEMP(e)}>Download TEMP</Button>
               </Card.Body>
             </Card>
           </Col>
@@ -257,7 +258,7 @@ const Home = () => {
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
                 <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
-                { data != [] &&
+                { (data != [] && user?.prefs?.perms?.includes("hr.edit_user_current_state")) &&
                   // <p>{JSON.stringify(data)}</p>
                   <FormSelect value={submittingId} onChange={handleOnUserSelect}>
                     <option value={user?.$id}>Saját</option>

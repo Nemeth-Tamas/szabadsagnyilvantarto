@@ -56,7 +56,7 @@ export const CalendarContainer = styled.div`
   }
 
   .react-calendar__month-view__days__day--neighboringMonth {
-    opacity: 0.5;
+    opacity: 0.3;
   }
 
   .react-calendar__month-view__days__day--weekend {

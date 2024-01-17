@@ -3,7 +3,7 @@ import { ThemeContext } from '../ThemeContext';
 import { CalendarContainer } from '.';
 import Calendar from 'react-calendar';
 
-const CustomCalendar = ({ selectedDates, setSelectedDates }) => {
+const CustomCalendar = ({ selectedDates, setSelectedDates, displayMonth = null }) => {
   const { theme } = useContext(ThemeContext);
 
   const handleDateClick = (date) => {
@@ -45,8 +45,10 @@ const CustomCalendar = ({ selectedDates, setSelectedDates }) => {
         onChange={handleDateClick}
         tileClassName={titleClassName}
         value={null}
+        showNavigation={displayMonth === null}
+        activeStartDate={displayMonth === null ? null : new Date(new Date().setMonth(displayMonth - 1))}
       />
-    </CalendarContainer>
+     </CalendarContainer> 
   )
 }
 

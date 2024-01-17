@@ -23,6 +23,10 @@ const ErrorCodes = {
     FailedToEncryptPassword: "Nem sikerült titkosítani a jelszót. Kérjük próbálja újra később.",
     FailedToSendMessage: "Nem sikerült elküldeni az üzenetet. Kérjük próbálja újra később.",
     AlreadyOnLeave: "A kijelölt időszakban már szabadságon van.",
+    FailedToSavePlan: "Hiba történt a szabadság tervezet elküldése közben.",
+    PlanContainsToManyDays: "Nem lehet menteni a tervezetet, mert túl sok napot tartalmaz.",
+    PlanContainsToFewDays: "Nem lehet menteni a tervezetet, mert túl kevés napot tartalmaz.",
+    PlanMaxNotSet: "Az évi szabadság nem került még feltöltésre. Próbálkozz később.",
 }
 
 export default ErrorCodes;
