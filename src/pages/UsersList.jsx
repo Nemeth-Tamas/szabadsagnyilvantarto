@@ -12,6 +12,7 @@ const UsersList = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
+  let dataSick = [];
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.UnknownError);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
@@ -23,6 +24,7 @@ const UsersList = () => {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
   const [userCalendarStats, setUserCalendarStats] = useState(null);
+  const [tappenz, setTappenz] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showSendMessage, setShowSendMessage] = useState(false);
   const [sendMessageId, setSendMessageId] = useState('');
@@ -118,7 +120,26 @@ const UsersList = () => {
         if (response.data.status == 'fail') setError(true);
         console.log(response);
         setUserCalendarStats(response.data.user.prefs);
-        setShowCalendar(true);
+        // get sick days
+        const options = {
+          method: 'GET',
+          url: `${url}/tappenz/${id}/cumulative`,
+          headers: {
+            'Content-Type': 'application/json',
+            'submittingId': user.$id
+          }
+        }
+
+        axios.request(options).then((response) => {
+          if (response.status != 200) { setError(true); return; }
+          if (response.data.status == 'fail') { setError(true); return; }
+
+          setTappenz(response.data.cumulative);
+          setShowCalendar(true);
+        }).catch((error) => { 
+          console.log(error);
+          setError(true);
+        });
       }).catch((error) => {
         console.log(error);
         setErrorCode(ErrorCodes.FailedToLoadUser);
@@ -146,7 +167,7 @@ const UsersList = () => {
       if (response.data.status == 'fail') setError(true);
 
       console.log(response);
-      
+
       setShowSickTable(false);
       response.data.report.forEach((user) => {
         if (user.isSick) setShowSickTable(true);
@@ -179,7 +200,7 @@ const UsersList = () => {
       setError(true);
     });
   };
-  
+
   const deletePlan = (id) => {
     if (id == "reset") setErrorCode(ErrorCodes.ErrorWhileDeletingAllPlans);
     else setErrorCode(ErrorCodes.ErrorWhileDeletingSignlePlan);
@@ -285,7 +306,7 @@ const UsersList = () => {
       }
 
       if (!postUserEmail.includes('@') || !postUserEmail.includes('.')) {
-      setErrorCode(ErrorCodes.UsernameDoesNotContainAt);
+        setErrorCode(ErrorCodes.UsernameDoesNotContainAt);
         setError(true);
         return;
       }
@@ -393,7 +414,7 @@ const UsersList = () => {
       const link = document.createElement('a');
       link.href = url;
       let date = new Date();
-      let dateString = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+'_'+date.getHours()+'-'+date.getMinutes()+'-'+date.getSeconds();
+      let dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + '_' + date.getHours() + '-' + date.getMinutes() + '-' + date.getSeconds();
       let filename = unameForDownload.replace(/ /g, '-') + '_' + dateString + '.xlsx';
       link.setAttribute('download', filename);
       document.body.appendChild(link);
@@ -402,7 +423,7 @@ const UsersList = () => {
       link.remove();
 
       console.log(response);
-    }).catch((error) => {console.log(error)});
+    }).catch((error) => { console.log(error) });
   }
 
   return (
@@ -412,7 +433,7 @@ const UsersList = () => {
           <Modal.Title>Szabadságok</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <ModalCalendar userData={userCalendarData} userStats={userCalendarStats} />
+          <ModalCalendar userData={userCalendarData} userStats={userCalendarStats} tappenz={tappenz} />
         </Modal.Body>
         <Modal.Footer>
           <Button variant={theme} onClick={(e) => handleDownload(e, uidForDownload)}>
@@ -451,27 +472,27 @@ const UsersList = () => {
             </tbody>
           </Table>
           {showSickTable && <>
-          <h1>Jelenleg táppénzen</h1>
-          <Table striped bordered hover variant={theme}>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Név</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData != null ? reportData.map((item, index) => {
-                if (item.isSick) {
-                  return (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>{item.name}</td>
-                    </tr>
-                  )
-                }
-              }) : <></>}
-            </tbody>
-          </Table>
+            <h1>Jelenleg táppénzen</h1>
+            <Table striped bordered hover variant={theme}>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Név</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportData != null ? reportData.map((item, index) => {
+                  if (item.isSick) {
+                    return (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>{item.name}</td>
+                      </tr>
+                    )
+                  }
+                }) : <></>}
+              </tbody>
+            </Table>
           </>}
         </Modal.Body>
         <Modal.Footer>
@@ -494,7 +515,7 @@ const UsersList = () => {
           </form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant={theme} onClick={() => handleCalendarClose()}>
+          <Button variant={theme} onClick={() => handleSendMessageClose()}>
             Bezárás
           </Button>
           <Button variant="success" onClick={handleSubmitMessage}>
@@ -581,7 +602,7 @@ const UsersList = () => {
       </ToastContainer>
 
       <div className='w-100 d-flex'>
-        <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
+        <Button type='button' className='btn-success mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
@@ -593,7 +614,7 @@ const UsersList = () => {
             Új felhasználó
           </Button>
         )}
-        <Button type='button' className='btn-secondary mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
+        <Button type='button' className='btn-secondary mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           handleGetReport();
         }}>Jelentés lekérése</Button>

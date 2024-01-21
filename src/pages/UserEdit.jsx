@@ -3,7 +3,7 @@ import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import { Button, Card, Form, ToastContainer } from 'react-bootstrap';
+import { Button, Card, Form, Table, ToastContainer } from 'react-bootstrap';
 import axios from 'axios';
 import { BetterErrorToast, ErrorCodes, SuccessToast } from '../components';
 
@@ -18,9 +18,11 @@ const UserEdit = () => {
   const [userData, setUserData] = useState(null);
   const search = useLocation().search;
   const userID = new URLSearchParams(search).get('userid');
+  const [sickTableData, setSickTableData] = useState([]); // [start, end, id]
 
   // User data
   const [sick, setSick] = useState(false);
+  const [sickDate, setSickDate] = useState(); // start or end
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [manager, setManager] = useState('');
@@ -78,7 +80,29 @@ const UserEdit = () => {
       setMaxDays(response.data.user.prefs.maxdays);
       setSick(response.data.user.prefs.sick);
 
-      setLoading(false);
+      axios.request({
+        method: 'GET',
+        url: `${url}/tappenz/${userID}`,
+        headers: {
+          'Content-Type': 'application/json',
+          'submittingId': user.$id
+        }
+      }).then((response2) => {
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+
+        let data = response2.data.tappenz
+        let tableData = [];
+        data.forEach((item) => {
+          tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
+        })
+        setSickTableData(tableData);
+
+        setLoading(false);
+      }).catch((error) => {
+        console.log(error);
+        setError(true);
+      });
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -255,30 +279,59 @@ const UserEdit = () => {
     });
   };
 
-  const updateSick = (e) => {
+  const updateSickStart = (e) => {
     e.preventDefault();
 
+    console.log(sick);
     axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/sick`,
+      method: 'POST',
+      url: `${url}/tappenz/start`,
       headers: {
         'Content-Type': 'application/json',
         'submittingId': user.$id
       },
       data: {
-        sick: sick
+        userId: userID,
+        start: sickDate
       }
     }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
       console.log(response);
+      if (response.status != 200) {setError(true); return};
+      if (response.data.status == 'fail') {setError(true); return};
 
       setSuccess(true);
+      navigate(0);
     }).catch((error) => {
       console.log(error);
       setError(true);
     });
-  };
+  }
+
+  const updateSickEnd = (e) => {
+    e.preventDefault();
+    axios.request({
+      method: 'POST',
+      url: `${url}/tappenz/end`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      },
+      data: {
+        userId: userID,
+        end: sickDate
+      }
+    }).then((response) => {
+      console.log(response);
+      if (response.status != 200) setError(true);
+      if (response.data.status == 'fail') setError(true);
+
+      setSuccess(true);
+      navigate(0);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
+  }
 
   return (
     <>
@@ -298,11 +351,70 @@ const UserEdit = () => {
               <Card.Title>Felhasználó azonosító: {userID}</Card.Title>
               <Form>
                 <Form.Group className="mb-3" controlId="formBasicName">
-                  <Form.Label>Táppénz</Form.Label>
-                  <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }}>
+                  <Form.Label>Táppénz {sick ? "vége" : "kezdete"}</Form.Label>
+                  <br />
+                  <Form.Label className='text-danger'>Kezdődátum a legutóbbi bejegyzett táppénz elé nem írható be!</Form.Label>
+                  <div style={{ display: 'flex' }}>
+                    {!sick && (
+                      <>
+                        <Form.Control type="date" placeholder="Táppénz kezdete" value={sickDate} style={{ maxWidth: '20rem' }} onChange={(e) => setSickDate(e.target.value)} />
+                        <Button variant="success" onClick={updateSickStart} className='ms-1'>Mentés</Button>
+                      </>
+                    )}
+                    {sick && (
+                      <>
+                        <Form.Control type="date" placeholder="Táppénz vége" value={sickDate} style={{ maxWidth: '20rem' }} onChange={(e) => setSickDate(e.target.value)} />
+                        <Button variant="success" onClick={updateSickEnd} className='ms-1'>Mentés</Button>
+                      </>
+                    )}
+                  </div>
+                  <Form.Label>Táppénz előzmények</Form.Label>
+                  <div style={{ display: 'flex' }}>
+                    <Table striped bordered hover variant={theme} className='mt-2'>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Kezdete</th>
+                          <th>Vége</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sickTableData.map((item, index) => (
+                          <tr key={index}>
+                            <td>{index + 1}</td>
+                            <td>{item[0]}</td>
+                            <td>{item[1]}</td>
+                            <td><Button variant="danger" onClick={(e) => {
+                              e.preventDefault();
+                              axios.request({
+                                method: 'DELETE',
+                                url: `${url}/tappenz/${item[2]}`,
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'submittingId': user.$id
+                                }
+                              }).then((response) => {
+                                console.log(response);
+                                if (response.status != 200) setError(true);
+                                if (response.data.status == 'fail') setError(true);
+
+                                setSuccess(true);
+                                navigate(0);
+                              }).catch((error) => {
+                                console.log(error);
+                                setError(true);
+                              });
+                            }}>Törlés</Button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                  {/* <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }}>
                     <Form.Check type="checkbox" label="Táppénz" checked={sick} onChange={(e) => setSick(e.target.checked)} />
                     <Button variant="success" onClick={updateSick} className='ms-1'>Mentés</Button>
-                  </div>
+                  </div> */}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicName">
                   <Form.Label>Név</Form.Label>

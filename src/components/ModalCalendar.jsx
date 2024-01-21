@@ -5,7 +5,7 @@ import { selectUser } from '../store/userSlice';
 import axios from 'axios';
 import { Container } from 'react-bootstrap';
 
-const ModalCalendar = ({ id, userData = null, userStats = null }) => {
+const ModalCalendar = ({ id, userData = null, userStats = null, tappenz = null }) => {
   const user = useSelector(selectUser);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [shouldShow, setShouldShow] = useState(false);
@@ -19,8 +19,8 @@ const ModalCalendar = ({ id, userData = null, userStats = null }) => {
 
   useEffect(() => {
     console.log(id);
+    
     // send axios request to get days taken by user with id
-
     if (userData == null && id != null) {
       const options = {
         method: 'GET',
@@ -71,6 +71,7 @@ const ModalCalendar = ({ id, userData = null, userStats = null }) => {
           <span>Összes szabadság: {userStats?.maxdays}</span><br />
           <span>Rendelkezésre álló szabadságok: {userStats?.remainingdays}</span><br />
           <span>Igénybevett szabadságok: {userStats?.maxdays - userStats?.remainingdays}</span><br />
+          <span>Az évben használt összes táppénz: {tappenz}</span>
         </div>
       }
 

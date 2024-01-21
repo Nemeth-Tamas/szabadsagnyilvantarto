@@ -22,6 +22,7 @@ const Home = () => {
   const dispatch = useDispatch();
   const [takenDays, setTakenDays] = useState(new Map());
   const [currentlyOnLeave, setCurrentlyOnLeave] = useState(false);
+  const [sick, setSick] = useState(null);
   const [submittingId, setSubmittingId] = useState(user?.$id);
   const [planFilledOut, setPlanFilledOut] = useState(true);
 
@@ -63,6 +64,7 @@ const Home = () => {
           console.log(error);
         });
 
+      getUserSick();
       getUserDays();
       getUserPlanFilled();
       if (user?.prefs?.perms?.includes("hr.edit_user_current_state")) {
@@ -194,7 +196,7 @@ const Home = () => {
           }
           
           let todayString = today.toISOString().split('T')[0];
-          if (takenDaysCurrent.has(todayString) || user.prefs.sick) {
+          if (takenDaysCurrent.has(todayString)) {
             setCurrentlyOnLeave(true);
           } else {
             setCurrentlyOnLeave(false);
@@ -202,6 +204,30 @@ const Home = () => {
         }
       })
       .catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+  }
+
+  const getUserSick = () => {
+      let options = {
+        method: 'GET',
+        url: `${url}/tappenz/current/${user.$id}`,
+        headers: {
+          'Content-Type': 'application/json',
+          'submittingId': user.$id
+        }
+      }
+
+      setErrorCode(ErrorCodes.ServerError);
+      axios.request(options).then((response) => {
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+        if (response.data.status == 'success') {
+          console.log("IMPORTANT", response.data.current)
+          setSick(response.data.current);
+        }
+      }).catch((error) => {
         console.log(error);
         setError(true);
       });
@@ -220,11 +246,11 @@ const Home = () => {
         <SuccessToast success={success} setSuccess={setSuccess} title='Elküldve' text='Kérelmét sikeresen elküldtük.' />
       </ToastContainer>
       <Container className='h-100 d-flex flex-column'>
-        {currentlyOnLeave && <Row className='flex-grow-1'>
+        {(currentlyOnLeave || sick) && <Row className='flex-grow-1'>
           <Col className='col-12'>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
               <Card.Body className='d-flex flex-column align-items-center'>
-                {user?.prefs?.sick == true
+                {sick == true
                 ? <Card.Title><h1 className='display-5 text-center text-danger'>Jelenleg táppénzen</h1></Card.Title>
                 : <Card.Title><h1 className='display-5 text-center text-danger'>Jelenleg szabadságon</h1></Card.Title>}
               </Card.Body>
