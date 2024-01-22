@@ -286,7 +286,7 @@ const Home = () => {
                 <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
                 { (data != [] && user?.prefs?.perms?.includes("hr.edit_user_current_state")) &&
                   // <p>{JSON.stringify(data)}</p>
-                  <FormSelect value={submittingId} onChange={handleOnUserSelect}>
+                  <FormSelect value={submittingId} onChange={handleOnUserSelect} className='mt-3'>
                     <option value={user?.$id}>Saját</option>
                     {data.map((guser) => {
                       if(guser.$id != user.$id) 
@@ -315,7 +315,6 @@ const Home = () => {
                 <CustomCalendarDisplayOnly selectedDates={takenDays} />
 
                 <Badge bg='secondary' className='p-2 mt-3 m-2'>Szabadság</Badge>
-                <Badge bg='danger' className='p-2 m-2'>Táppénz</Badge>
                 <Badge bg='dark' className='p-2 m-2 border'>Hozzátartozó halála</Badge>
                 <Badge bg='info' text='dark' className='p-2 m-2'>Apa szabadság</Badge>
                 <Badge bg='warning' text='dark' className='p-2 m-2'>Szülési szabadság</Badge>
