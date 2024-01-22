@@ -25,6 +25,10 @@ const UserRequests = () => {
     if (!user?.prefs?.perms?.includes('felhasznalo.delete_request')) {
       navigate('/');
     }
+    if (!user || !user.$id) {
+      navigate('/login');
+      return;
+    }
     handleUpdate();
   }, []);
 

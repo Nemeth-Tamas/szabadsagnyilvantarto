@@ -5,15 +5,21 @@ import { selectUser } from '../store/userSlice';
 import axios from 'axios';
 import { Button, Table, ToastContainer } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes } from '../components';
+import { useNavigate } from 'react-router';
 
 const Messages = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
+  const navigate = useNavigate();
   const [error, setError] = useState(false);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
 
   useEffect(() => {
+    if (!user || !user.$id) {
+      navigate('/login');
+      return;
+    }
     handleUpdate();
   }, []);
 

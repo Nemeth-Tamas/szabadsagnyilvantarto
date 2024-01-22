@@ -53,15 +53,21 @@ const MainNavbar = () => {
           <Navbar.Toggle aria-controls='basic-navbar-nav' />
           <Navbar.Collapse id='basic-navbar-nav'>
             <Nav className='me-auto'>
-              <LinkContainer to="/">
-                <Nav.Link>Főoldal</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/messages">
-                <Nav.Link>Üzenetek</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/userrequests">
-                <Nav.Link>Saját kérelmek</Nav.Link>
-              </LinkContainer>
+              {(user && user.$id) ? (
+                <LinkContainer to="/">
+                  <Nav.Link>Főoldal</Nav.Link>
+                </LinkContainer>
+              ) : (<></>)}
+              {(user && user.$id) ? (
+                <LinkContainer to="/messages">
+                  <Nav.Link>Üzenetek</Nav.Link>
+                </LinkContainer>
+              ) : (<></>)}
+              {(user && user.$id) ? (
+                <LinkContainer to="/userrequests">
+                  <Nav.Link>Saját kérelmek</Nav.Link>
+                </LinkContainer>
+              ) : (<></>)}
               {user?.prefs?.perms.includes("irodavezeto.approve") ? (
                 <LinkContainer to="/requests">
                   <Nav.Link>Kérelmek</Nav.Link>
@@ -76,10 +82,10 @@ const MainNavbar = () => {
             <Form className='d-flex pe-2'>
               <Button variant='outline-info' onClick={switchTheme}>{themeButton}</Button>
             </Form>
-            <Button variant='info' className='me-2 mt-sm-2 mt-md-0' onClick={() => {
+            {/* <Button variant='info' className='me-2 mt-sm-2 mt-md-0' onClick={() => {
               localStorage.clear();
               window.location.reload();
-            }}>Cache törlése</Button>
+            }}>Cache törlése</Button> */}
             <Nav>
               {(user && user.$id) ? (
                 <Button variant='outline-primary' className='me-auto mt-sm-2 mt-md-0' onClick={handleLogout}>Kijelentkezés</Button>
