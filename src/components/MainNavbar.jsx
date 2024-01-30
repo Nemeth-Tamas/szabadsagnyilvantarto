@@ -30,7 +30,7 @@ const MainNavbar = () => {
     } else {
       setThemeButton("Világos");
     }
-  }, []);
+  }, [theme]);
 
   const handleLogout = (e) => {
     e.preventDefault();

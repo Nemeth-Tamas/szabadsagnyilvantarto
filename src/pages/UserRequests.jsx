@@ -86,7 +86,7 @@ const UserRequests = () => {
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Időpontok</Modal.Title>
+          <Modal.Title>Dátumok</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ModalCalendar id={calendarId} />
@@ -126,7 +126,7 @@ const UserRequests = () => {
                 item.type == "T" ? "Táppénz" :
                   item.type == "H" ? "Hozzátartozó halála" :
                     item.type == "A" ? "Apa szabadság" : "Szülési szabadság"}</td>
-              <td>{item.approved ? "Elfogadva" : item.rejected ? "Elutasítva" : "Várakozik"}</td>
+              <td>{item.approved ? "Elfogadva" : item.rejected ? "Visszautasítva" : "Várakozik"}</td>
               <td>{item.rejectedMessage ? item.rejectedMessage : ""}</td>
               <td>
                 {item.approved ? "" : item.rejected ? "" : <Button type='button' className='btn-danger my-1 shadow-smc' onClick={(e) => {
@@ -140,7 +140,7 @@ const UserRequests = () => {
                   handleView(item.$id);
                 }}>Megtekintés</Button>
                 {/* Development Function */}
-                <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
+                {/* <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
                   async function copyToClipboard(text) {
                     if ('clipboard' in navigator) {
@@ -150,7 +150,7 @@ const UserRequests = () => {
                     }
                   }
                   copyToClipboard(item.$id);
-                }}></Button>
+                }}></Button> */}
                 </td>
             </tr>
           ))}

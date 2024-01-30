@@ -141,7 +141,7 @@ const Requests = () => {
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Szabadságok</Modal.Title>
+          <Modal.Title>Dátumok</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ModalCalendar id={calendarId} />
@@ -155,14 +155,14 @@ const Requests = () => {
 
       <Modal variant={theme} show={showRejectMessage} onHide={handleRejectClose} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Elutasító üzenet</Modal.Title>
+          <Modal.Title>Visszautasító üzenet</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <form>
             <div className="form-group">
               <label htmlFor="rejectMessage">Üzenet:</label>
               <input type="text" className='form-control' name="rejectMessage" id="rejectMessage"
-                value={rejectMessage} onChange={(e) => setRejectMessage(e.target.value)} />
+                value={rejectMessage} onChange={(e) => setRejectMessage(e.target.value)} maxLength={40} />
             </div>
           </form>
         </Modal.Body>
@@ -205,7 +205,7 @@ const Requests = () => {
                 item.type == "T" ? "Táppénz" :
                   item.type == "H" ? "Hozzátartozó halála" :
                     item.type == "A" ? "Apa szabadság" : "Szülési szabadság"}</td>
-              <td>{item.approved ? "Elfogadva" : item.rejected ? "Elutasítva" : "Várakozik"}</td>
+              <td>{item.approved ? "Elfogadva" : item.rejected ? "Visszautasítva" : "Várakozik"}</td>
               <td>{item.rejectedMessage ? item.rejectedMessage : ""}</td>
               <td>
                 {item.approved ? "" : item.rejected ? "" : (<>
@@ -217,7 +217,7 @@ const Requests = () => {
                     <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
                       handleReject(item.$id);
-                    }}>Elutasítás</Button> : ""}<br /></>
+                    }}>Visszautasítás</Button> : ""}<br /></>
                 )}
                 <Button type='button' className='btn-primary mx-1 my-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
@@ -231,7 +231,7 @@ const Requests = () => {
                     }
                   }}>Törlés</Button> : ""}
                 {/* Development Function */}
-                <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
+                {/* <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
                   async function copyToClipboard(text) {
                     if ('clipboard' in navigator) {
@@ -241,7 +241,7 @@ const Requests = () => {
                     }
                   }
                   copyToClipboard(item.$id);
-                }}></Button>
+                }}></Button> */}
               </td>
             </tr>
           ))}

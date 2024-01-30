@@ -92,6 +92,10 @@ const Home = () => {
       }
     }
 
+    if (options.data.managerId == undefined) {
+      options.data.managerId = user?.prefs?.manager;
+    }
+
     if (selectedDates.length == 0) return;
     if (user?.prefs?.remainingdays - selectedDates.length < 0) {
       if (selectedType == 'SZ') {
