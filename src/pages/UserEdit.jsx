@@ -15,14 +15,13 @@ const UserEdit = () => {
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [userData, setUserData] = useState(null);
   const search = useLocation().search;
   const userID = new URLSearchParams(search).get('userid');
   const [sickTableData, setSickTableData] = useState([]); // [start, end, id]
 
   // User data
   const [sick, setSick] = useState(false);
-  const [sickDate, setSickDate] = useState(); // start or end
+  const [sickDate, setSickDate] = useState(new Date().toISOString().slice(0,10)); // start or end
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [manager, setManager] = useState('');
