@@ -636,7 +636,13 @@ const UsersList = () => {
         </thead>
         <tbody>
           {data.map((u, index) => (
-            <tr key={u.$id + index} className={`${u.prefs.sick ? 'table-danger' : ''}`}>
+            <tr key={u.$id + index} className={`${u.prefs.sick 
+                                                ? 'table-danger' 
+                                                : u.prefs.onLeave 
+                                                ? 'table-warning' 
+                                                : (u.prefs.manager == user.$id && user.prefs.perms.includes("jegyzo.list_all")) 
+                                                ? 'table-secondary' 
+                                                : ''}`}>
               <td>{index + 1}</td>
               <td>{u.name}</td>
               <td>{u.email}</td>
