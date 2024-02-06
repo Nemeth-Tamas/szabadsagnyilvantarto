@@ -106,9 +106,7 @@ const Home = () => {
     }
 
     let doNotProceed = false;
-
     takenDays.forEach((type, date) => {
-      console.log(date, type);
       if (selectedDates.includes(date)) {
         setErrorCode(ErrorCodes.AlreadyOnLeave);
         setError(true);
@@ -117,8 +115,8 @@ const Home = () => {
       }
     })
 
-    setErrorCode(ErrorCodes.RequestNotSent);
     if (doNotProceed) return;
+    setErrorCode(ErrorCodes.RequestNotSent);
     axios.request(options)
       .then((response) => {
         console.log("HERE:", response);
@@ -305,6 +303,12 @@ const Home = () => {
                   <label className="btn btn-outline-primary" htmlFor="H">Hozzátartozó halála</label>
                   <input type="radio" className='btn-check' name='szabadsagTipusa' id='SZSZ' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'SZSZ'} />
                   <label className="btn btn-outline-warning" htmlFor="SZSZ">Szülési szabadság</label>
+                  {user?.prefs?.perms?.includes('hr.edit_user_current_state') && (
+                    <>
+                      <input type="radio" className='btn-check' name='szabadsagTipusa' id='A' autoComplete='off' onChange={handleRadioChange} checked={selectedType === 'A'} />
+                      <label className="btn btn-outline-info" htmlFor="A">Apa szabadság</label>
+                    </>
+                  )}
                 </ButtonGroup>
                 <button type="button" className='btn btn-success mt-3 shadow-smc' onClick={handleSubmit}>Küldés</button>
               </Card.Body>
