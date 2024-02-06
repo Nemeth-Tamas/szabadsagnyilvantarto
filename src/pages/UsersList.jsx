@@ -12,15 +12,11 @@ const UsersList = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
-  let dataSick = [];
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.UnknownError);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const navigate = useNavigate();
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showReport, setShowReport] = useState(false);
-  const [showSickTable, setShowSickTable] = useState(false);
-  const [reportData, setReportData] = useState(null);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
   const [userCalendarStats, setUserCalendarStats] = useState(null);
@@ -43,7 +39,6 @@ const UsersList = () => {
   const [userDaysLeft, setUserDaysLeft] = useState(-1);
 
   const handleCalendarClose = () => { setShowCalendar(false); setUserCalendarData(null); setUserCalendarStats(null); }
-  const handleReportClose = () => { setShowReport(false); setReportData(null) }
   const handleCreateUserClose = () => {
     setShowCreateUser(false);
     setUserEmail('');
@@ -152,34 +147,6 @@ const UsersList = () => {
       setError(true);
     });
   };
-
-  const handleGetReport = () => {
-    setErrorCode(ErrorCodes.UnableToCreateReport);
-    axios.request({
-      method: 'GET',
-      url: `${url}/users/report`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-
-      console.log(response);
-
-      setShowSickTable(false);
-      response.data.report.forEach((user) => {
-        if (user.isSick) setShowSickTable(true);
-      });
-
-      setReportData(response.data.report);
-      setShowReport(true);
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
-  }
 
   const deleteUser = (id) => {
     setErrorCode(ErrorCodes.ErrorWhileDeletingUser);
@@ -445,63 +412,6 @@ const UsersList = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal variant={theme} show={showReport} onHide={handleReportClose} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Jelenleg szabadságon</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Table striped bordered hover variant={theme}>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Név</th>
-                <th>Napok</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData != null ? reportData.map((item, index) => {
-                if (item.isSick) return;
-                return (
-                  <tr key={item.userId + index}>
-                    <td>{index + 1}</td>
-                    <td>{item.name}</td>
-                    <td>{item.dates}</td>
-                  </tr>
-                )
-              }) : <></>}
-            </tbody>
-          </Table>
-          {showSickTable && <>
-            <h1>Jelenleg táppénzen</h1>
-            <Table striped bordered hover variant={theme}>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Név</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reportData != null ? reportData.map((item, index) => {
-                  if (item.isSick) {
-                    return (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{item.name}</td>
-                      </tr>
-                    )
-                  }
-                }) : <></>}
-              </tbody>
-            </Table>
-          </>}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant={theme} onClick={() => handleReportClose()}>
-            Bezárás
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
       <Modal variant={theme} show={showSendMessage} onHide={handleSendMessageClose} centered>
         <Modal.Header closeButton>
           <Modal.Title>Üzenet küldés</Modal.Title>
@@ -614,10 +524,6 @@ const UsersList = () => {
             Új felhasználó
           </Button>
         )}
-        <Button type='button' className='btn-secondary mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
-          e.preventDefault();
-          handleGetReport();
-        }}>Jelentés lekérése</Button>
         {(user?.prefs?.perms?.includes('hr.edit_user_current_state') && new Date().getMonth() == 0) && (
           <Button type='button' className='btn-danger mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
             e.preventDefault();
