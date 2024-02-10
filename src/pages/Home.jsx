@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Badge, Button, ButtonGroup, Card, Col, Container, FormSelect, Row, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
+import { Badge, Button, ButtonGroup, Card, Col, Container, FormSelect, Modal, Row, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, setUser } from '../store/userSlice';
-import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes } from '../components';
+import { logoutUser, selectUser, setUser } from '../store/userSlice';
+import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes, PasswordField } from '../components';
 import axios from 'axios';
-import { getUserData } from '../appwrite';
+import { getUserData, updatePassword } from '../appwrite';
 
 const Home = () => {
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
@@ -25,6 +25,17 @@ const Home = () => {
   const [sick, setSick] = useState(null);
   const [submittingId, setSubmittingId] = useState(user?.$id);
   const [planFilledOut, setPlanFilledOut] = useState(true);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPasswordOne, setNewPasswordOne] = useState('');
+  const [newPasswordTwo, setNewPasswordTwo] = useState('');
+  const [showChangePassword, setShowChangePassword] = useState(false);
+
+  const handleChangePasswordClose = () => {
+    setShowChangePassword(false);
+    setOldPassword('');
+    setNewPasswordOne('');
+    setNewPasswordTwo('');
+  }
 
   const handleUpdate = () => {
     setErrorCode(ErrorCodes.FailedToLoadUsers);
@@ -241,8 +252,96 @@ const Home = () => {
     setSubmittingId(e.target.value);
   }
 
+  const handleSubmitPassword = (e) => {
+    e.preventDefault();
+    setOldPassword(oldPassword.trim());
+    setNewPasswordOne(newPasswordOne.trim());
+    setNewPasswordTwo(newPasswordTwo.trim());
+
+    if (newPasswordOne != newPasswordTwo) {
+      setErrorCode(ErrorCodes.PasswordsDontMatch);
+      setError(true);
+      return;
+    }
+    
+    if (oldPassword == newPasswordOne) {
+      setErrorCode(ErrorCodes.PasswordsNotMatch);
+      setError(true);
+      return;
+    }
+
+    if (oldPassword == '' || newPasswordOne == '' || newPasswordTwo == '') {
+      setErrorCode(ErrorCodes.EmptyField);
+      setError(true);
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    // const passwordRegex = /^(?=.*[a-z]).{8,}$/;
+
+    if (passwordRegex.test(newPasswordOne) == false) {
+      setErrorCode(ErrorCodes.NewPasswordDoesNotMatchPattern);
+      setError(true);
+      return;
+    }
+
+    if (import.meta.env.VITE_PASSWORD_CHANGE_ENABLED == 'true') {
+      updatePassword(oldPassword, newPasswordOne)
+      .then((response) => {
+        if (response == true) {
+          dispatch(logoutUser())
+          navigate('/login');
+        }
+      })
+      .catch((error) => {
+        if (error.message.includes('Invalid credentials')) {
+          setErrorCode(ErrorCodes.OldPasswordWrong);
+          setError(true);
+          return;
+        }
+        setErrorCode(ErrorCodes.PasswordChangeFailedPleaseContactAdmin);
+        setError(true);
+      });
+    }
+  }
+
   return (
     <>
+      <Modal variant={theme} show={showChangePassword} onHide={handleChangePasswordClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Jelszó változtazás</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <form>
+            <div className="mb-3">
+              <label htmlFor="oldPassword" className="form-label">Jelenlegi jelszó</label>
+              {/* <input type="password" className="form-control" id="oldPassword" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} /> */}
+              <PasswordField id={oldPassword} password={oldPassword} setPassword={setOldPassword} />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="newPasswordOne" className="form-label">Új jelszó</label>
+              {/* <input type="password" className="form-control" id="newPasswordOne" value={newPasswordOne} onChange={(e) => setNewPasswordOne(e.target.value)} /> */}
+              <PasswordField id={newPasswordOne} password={newPasswordOne} setPassword={setNewPasswordOne} />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="newPasswordTwo" className="form-label">Új jelszó mégegyszer</label>
+              {/* <input type="password" className="form-control" id="newPasswordTwo" value={newPasswordTwo} onChange={(e) => setNewPasswordTwo(e.target.value)} /> */}
+              <PasswordField id={newPasswordTwo} password={newPasswordTwo} setPassword={setNewPasswordTwo} />
+            </div>
+          </form>
+        </Modal.Body>
+        <Modal.Footer className='d-flex justify-content-between align-items-center'>
+          <p className='text-danger' style={{ fontSize: '0.8rem' }}>Legalább 8 karakter, kis-, nagybetű és szám.</p>
+          <div className='d-flex gap-2'>
+            <Button variant={theme} onClick={() => handleChangePasswordClose()}>
+              Bezárás
+            </Button>
+            <Button variant="success" onClick={handleSubmitPassword}>
+              Mentés
+            </Button>
+          </div>
+        </Modal.Footer>
+      </Modal>
       <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
         <BetterErrorToast error={error} setError={setError} errorText={errorCode} />
         <SuccessToast success={success} setSuccess={setSuccess} title='Elküldve' text='Kérelmét sikeresen elküldtük.' />
@@ -342,6 +441,12 @@ const Home = () => {
                 <Card.Text>
                   Rendelkezésreálló szabadságok száma: {user?.prefs?.remainingdays}
                 </Card.Text>
+                {import.meta.env.VITE_PASSWORD_CHANGE_ENABLED == 'true' && (
+                  <Button variant='primary' onClick={(e) => {
+                    e.preventDefault();
+                    setShowChangePassword(true);
+                  }}>Jelszó módosítása</Button>
+                )}
               </Card.Body>
             </Card>
           </Col>

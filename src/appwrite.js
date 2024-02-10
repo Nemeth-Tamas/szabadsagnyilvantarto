@@ -1,4 +1,7 @@
 import { Account, Client } from "appwrite";
+import { useDispatch } from "react-redux";
+import { logoutUser } from "./store/userSlice";
+import { useNavigate } from "react-router";
 
 const client = new Client()
     .setEndpoint(import.meta.env.VITE_APPWRITE_ENPOINT)
@@ -34,6 +37,18 @@ export const logout = async () => {
     } catch (error) {
         const appwriteError = error;
         throw new Error(appwriteError.message)
+    }
+}
+
+export const updatePassword = async (oldPassword, newPassword) => {
+    try {
+        const account = new Account(client);
+        await account.updatePassword(newPassword, oldPassword);
+        await logout();
+        return true;
+    } catch (error) {
+        const appwriteError = error;
+        throw new Error(appwriteError.message);
     }
 }
 

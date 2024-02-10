@@ -7,3 +7,4 @@ export { default as CustomCalendarDisplayOnly } from './CustomCalendarDisplayOnl
 export { default as BetterErrorToast } from './BetterErrorToast';
 export { default as ErrorCodes } from './ErrorCodes';
 export { default as SuccessToast } from './SuccessToast';
+export { default as PasswordField } from './PasswordField';

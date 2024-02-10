@@ -27,6 +27,12 @@ const ErrorCodes = {
     PlanContainsToManyDays: "Nem lehet menteni a tervezetet, mert túl sok napot tartalmaz.",
     PlanContainsToFewDays: "Nem lehet menteni a tervezetet, mert túl kevés napot tartalmaz.",
     PlanMaxNotSet: "Az évi szabadság nem került még feltöltésre. Próbálkozz később.",
+    PasswordsDontMatch: "A két jelszó nem egyezik. Kérjük próbálja újra.",
+    NewPasswordDoesNotMatchPattern: "Az új jelszó nem felel meg a követelményeknek.",
+    PasswordsNotMatch: "A régi jelszó nem lehet ugyanaz, mint az új jelszó.",
+    EmptyField: "Kérjük töltse ki az összes mezőt.",
+    PasswordChangeFailedPleaseContactAdmin: "Nem sikerült megváltoztatni a jelszót. Kérjük vegye fel a kapcsolatot az adminisztrátorral.",
+    OldPasswordWrong: "A megadott régi jelszó nem egyezik a tárolt jelszóval.",
 }
 
 export default ErrorCodes;
