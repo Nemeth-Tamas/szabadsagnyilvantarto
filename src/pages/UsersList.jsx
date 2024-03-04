@@ -524,14 +524,14 @@ const UsersList = () => {
             Új felhasználó
           </Button>
         )}
-        {(user?.prefs?.perms?.includes('hr.edit_user_current_state') && new Date().getMonth() == 0) && (
+        {(user?.prefs?.perms?.includes('hr.edit_user_current_state') && new Date().getMonth() == 2) && (
           <Button type='button' className='btn-danger mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
             e.preventDefault();
             if (window.confirm("Biztos szeretné az összes felhasználó szabadság tervét törölni?")) deletePlan('reset');
           }}>Szabadság tervek törlése</Button>
         )}
       </div>
-      <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
+      <Table className={theme == "dark" ? 'table-dark mt-2 shadow-dark' : 'mt-2 shadow-light'}>
         <thead>
           <tr>
             <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
@@ -588,7 +588,7 @@ const UsersList = () => {
                     )}
                   </ButtonGroup>
                 )}
-                {user?.prefs?.perms?.includes('hr.edit_user_perms') && (
+                {/* {user?.prefs?.perms?.includes('hr.edit_user_perms') && (
                   <Button type='button' className='btn-info my-1 mx-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
                     async function copyToClipboard(text) {
@@ -600,7 +600,7 @@ const UsersList = () => {
                     }
                     copyToClipboard(u.$id);
                   }}></Button>
-                )}
+                )} */}
               </td>
             </tr>
           ))}

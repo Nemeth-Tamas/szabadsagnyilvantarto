@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button, FormControl, InputGroup } from 'react-bootstrap';
 
-const PasswordField = ({password, setPassword, id}) => {
+const PasswordField = ({password, setPassword, id, placeholder}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleTogglePassword = () => {
@@ -14,7 +14,7 @@ const PasswordField = ({password, setPassword, id}) => {
         type={showPassword ? 'text' : 'password'}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder='Password'
+        placeholder={placeholder}
         id={id}
       />
       <Button
@@ -22,7 +22,7 @@ const PasswordField = ({password, setPassword, id}) => {
         onClick={handleTogglePassword}
         tabIndex="-1"
       >
-        {showPassword ? 'Hide' : 'Show'}
+        {showPassword ? 'Elrejt' : 'Mutat'}
       </Button>
     </InputGroup>
   )

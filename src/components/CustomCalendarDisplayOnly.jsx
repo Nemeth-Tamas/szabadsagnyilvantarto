@@ -35,7 +35,7 @@ const CustomCalendarDisplayOnly = ({ selectedDates, context }) => {
       <Calendar
         tileClassName={titleClassName}
         value={null}
-        activeStartDate={selectedDates.size > 0 ? new Date([...selectedDates.keys()][0]) : new Date()}
+        defaultValue={selectedDates.size > 0 ? new Date([...selectedDates.keys()][0]) : new Date()}
       />
     </CalendarContainer>
   )

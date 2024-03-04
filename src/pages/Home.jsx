@@ -316,17 +316,17 @@ const Home = () => {
             <div className="mb-3">
               <label htmlFor="oldPassword" className="form-label">Jelenlegi jelszó</label>
               {/* <input type="password" className="form-control" id="oldPassword" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} /> */}
-              <PasswordField id={oldPassword} password={oldPassword} setPassword={setOldPassword} />
+              <PasswordField id="oldPassword" password={oldPassword} setPassword={setOldPassword} placeholder="Régi jelszó" />
             </div>
             <div className="mb-3">
               <label htmlFor="newPasswordOne" className="form-label">Új jelszó</label>
               {/* <input type="password" className="form-control" id="newPasswordOne" value={newPasswordOne} onChange={(e) => setNewPasswordOne(e.target.value)} /> */}
-              <PasswordField id={newPasswordOne} password={newPasswordOne} setPassword={setNewPasswordOne} />
+              <PasswordField id="newPasswordOne" password={newPasswordOne} setPassword={setNewPasswordOne} placeholder="Új jelszó"/>
             </div>
             <div className="mb-3">
               <label htmlFor="newPasswordTwo" className="form-label">Új jelszó mégegyszer</label>
               {/* <input type="password" className="form-control" id="newPasswordTwo" value={newPasswordTwo} onChange={(e) => setNewPasswordTwo(e.target.value)} /> */}
-              <PasswordField id={newPasswordTwo} password={newPasswordTwo} setPassword={setNewPasswordTwo} />
+              <PasswordField id="newPasswordTwo" password={newPasswordTwo} setPassword={setNewPasswordTwo} placeholder="Új jelszó mégegyszer"/>
             </div>
           </form>
         </Modal.Body>
