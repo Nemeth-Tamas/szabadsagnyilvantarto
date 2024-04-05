@@ -260,7 +260,7 @@ const UsersList = () => {
       console.log(hash);
       postUserPassword = hash;
 
-      if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserPerms == '' || postUserMaxdays == '' || postUserDaysLeft == '') {
+      if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserPerms == '' || postUserMaxdays < 0 || postUserDaysLeft < -1) {
         setErrorCode(ErrorCodes.EmptyField);
         setError(true);
         return;

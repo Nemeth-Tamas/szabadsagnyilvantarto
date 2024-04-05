@@ -21,7 +21,7 @@ const UserEdit = () => {
 
   // User data
   const [sick, setSick] = useState(false);
-  const [sickDate, setSickDate] = useState(new Date().toISOString().slice(0,10)); // start or end
+  const [sickDate, setSickDate] = useState(new Date().toISOString().split("T")[0]); // start or end
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [manager, setManager] = useState('');
@@ -356,13 +356,13 @@ const UserEdit = () => {
                   <div style={{ display: 'flex' }}>
                     {!sick && (
                       <>
-                        <Form.Control type="date" placeholder="Táppénz kezdete" value={sickDate} style={{ maxWidth: '20rem' }} onChange={(e) => setSickDate(e.target.value)} />
+                        <Form.Control type="date" placeholder="Táppénz kezdete" value={sickDate} onChange={(e) => setSickDate(e.target.value)}  />
                         <Button variant="success" onClick={updateSickStart} className='ms-1'>Mentés</Button>
                       </>
                     )}
                     {sick && (
                       <>
-                        <Form.Control type="date" placeholder="Táppénz vége" value={sickDate} style={{ maxWidth: '20rem' }} onChange={(e) => setSickDate(e.target.value)} />
+                        <Form.Control type="date" placeholder="Táppénz vége" value={sickDate} onChange={(e) => setSickDate(e.target.value)} />
                         <Button variant="success" onClick={updateSickEnd} className='ms-1'>Mentés</Button>
                       </>
                     )}
@@ -418,25 +418,25 @@ const UserEdit = () => {
                 <Form.Group className="mb-3" controlId="formBasicName">
                   <Form.Label>Név</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="text" placeholder="Név" value={name} style={{ maxWidth: '20rem' }} onChange={(e) => setName(e.target.value)} />
+                    <Form.Control type="text" placeholder="Név" value={name} onChange={(e) => setName(e.target.value)} />
                     <Button variant="success" onClick={updateName} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Email cím</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="email" placeholder="Felhasználónév" value={username} style={{ maxWidth: '20rem' }} onChange={(e) => setUsername(e.target.value)} />
+                    <Form.Control type="email" placeholder="Felhasználónév" value={username} onChange={(e) => setUsername(e.target.value)} />
                     <Button variant="success" onClick={updateUsername} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Manager</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="text" placeholder="Felettes azonosítója" value={manager} style={{ maxWidth: '20rem' }} onChange={(e) => setManager(e.target.value)} />
+                    <Form.Control type="text" placeholder="Felettes azonosítója" value={manager} onChange={(e) => setManager(e.target.value)} />
                     <Button variant="success" onClick={updateManager} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
-                <Form.Group className="mb-3">
+                {/* <Form.Group className="mb-3">
                   <Form.Label>Jogosultságok</Form.Label>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {permsList.map((perm, index) => (
@@ -450,11 +450,11 @@ const UserEdit = () => {
                     ))}
                     <Button variant="success" onClick={updatePerms} className='ms-1'>Mentés</Button>
                   </div>
-                </Form.Group>
+                </Form.Group> */}
                 <Form.Group className="mb-3">
                   <Form.Label>Szerepkör</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Select value={role} style={{ maxWidth: '20rem' }} onChange={(e) => setRole(e.target.value)}>
+                    <Form.Select value={role} onChange={(e) => setRole(e.target.value)}>
                       {roles.map((role, index) => (
                         <option key={index} value={role}>{role}</option>
                       ))}
@@ -465,14 +465,14 @@ const UserEdit = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Hátralévő napok</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="number" placeholder="Hátralévő napok" value={remainingDays} style={{ maxWidth: '20rem' }} onChange={(e) => setRemainingDays(e.target.value)} />
+                    <Form.Control type="number" placeholder="Hátralévő napok" value={remainingDays} onChange={(e) => setRemainingDays(e.target.value)} />
                     <Button variant="success" onClick={updateRemainingDays} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Maximális napok</Form.Label>
                   <div style={{ display: 'flex' }}>
-                    <Form.Control type="number" placeholder="Maximális napok" value={maxDays} style={{ maxWidth: '20rem' }} onChange={(e) => setMaxDays(e.target.value)} />
+                    <Form.Control type="number" placeholder="Maximális napok" value={maxDays} onChange={(e) => setMaxDays(e.target.value)} />
                     <Button variant="success" onClick={updateMaxDays} className='ms-1'>Mentés</Button>
                   </div>
                 </Form.Group>
