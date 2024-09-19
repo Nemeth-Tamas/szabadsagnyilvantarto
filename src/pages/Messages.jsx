@@ -11,6 +11,7 @@ const Messages = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
+  const [total, setTotal] = useState(0);
   const navigate = useNavigate();
   const [error, setError] = useState(false);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
@@ -23,6 +24,23 @@ const Messages = () => {
     handleUpdate();
   }, []);
 
+  const loadMore = () => {
+    axios.request({
+      method: 'GET',
+      url: `${url}/uzenetek/${user.$id}?offset=${data.length}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then((response) => {
+      console.log(response.data.messages.documents);
+      setData(prevData => [...prevData, ...response.data.messages.documents]);
+      setTotal(response.data.messages.total);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
+  };
+
   const handleUpdate = () => {
     axios.request({
       method: 'GET',
@@ -33,6 +51,7 @@ const Messages = () => {
     }).then((response) => {
       console.log(response.data.messages.documents);
       setData(response.data.messages.documents);
+      setTotal(response.data.messages.total);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -50,6 +69,14 @@ const Messages = () => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
+        {total > data.length ? (
+        <Button type='button' className='btn-primary mt-2 ms-2 flex-grow-1 shadow-smc' onClick={(e) => {
+          e.preventDefault();
+          loadMore();
+        }}>
+          {data.length == 0 ? "Nincs több üzenet" : "Több üzenet betöltése"}
+        </Button>
+        ) : <></>}
       </div>
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
         <thead>

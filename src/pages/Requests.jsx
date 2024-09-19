@@ -11,6 +11,7 @@ const Requests = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser)
   const [data, setData] = useState([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarId, setCalendarId] = useState(null);
@@ -36,6 +37,28 @@ const Requests = () => {
     setShowCalendar(true);
   };
 
+  const loadMore = () => {
+    axios.request({
+      method: 'GET',
+      url: `${url}/kerelmek?offset=${data.length}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'submittingId': user.$id
+      }
+    })
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+        console.log(response);
+        setData(prevData => [...prevData, ...response.data.kerelmek.documents]);
+        setTotal(response.data.kerelmek.total);
+      })
+      .catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+  }
+
   const handleUpdate = () => {
     axios.request({
       method: 'GET',
@@ -50,6 +73,7 @@ const Requests = () => {
         if (response.data.status == 'fail') setError(true);
         console.log(response);
         setData(response.data.kerelmek.documents);
+        setTotal(response.data.kerelmek.total);
       })
       .catch((error) => {
         console.log(error);
@@ -184,6 +208,14 @@ const Requests = () => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
+        {total > data.length ? (
+        <Button type='button' className='btn-primary mt-2 ms-2 flex-grow-1 shadow-smc' onClick={(e) => {
+          e.preventDefault();
+          loadMore();
+        }}>
+          {data.length == 0 ? "Nincs több kérelem" : "Több kérelem betöltése"}
+        </Button>
+        ) : <></>}
       </div>
       <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'} >
         <thead>

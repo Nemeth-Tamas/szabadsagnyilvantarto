@@ -15,6 +15,7 @@ const UsersList = () => {
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.UnknownError);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
+  const devmode = import.meta.env.VITE_DEVMODE;
   const navigate = useNavigate();
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
@@ -76,6 +77,8 @@ const UsersList = () => {
       .then((response) => {
         if (response.status != 200) setError(true);
         if (response.data.status == 'fail') setError(true);
+        console.log("Total users recv: ", response.data.usersList.users.length);
+        console.log("Total users expected: ", response.data.usersList.total);
         console.log(response);
         setData(response.data.usersList.users);
       })
@@ -190,6 +193,77 @@ const UsersList = () => {
 
   const createUser = () => {
     setShowCreateUser(true);
+  };
+
+  function generateRandomSequence() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
+    }
+    return result;
+  }
+
+  const createRandomUser = () => {
+    let random = generateRandomSequence();
+    let postUserEmail = random + '@celldomolk.hivatal';
+    let postUserPassword = "";
+    let postUserUsername = random;
+    let postUserRole = 'felhasznalo';
+    let postUserManager = '644549704ecd9939a53a';
+    let postUserPerms = [];
+    let postUserMaxdays = 0;
+    let postUserDaysLeft = -1;
+
+    let perms = [
+      'felhasznalo.request',
+      'felhasznalo.delete_request',
+    ];
+
+    let felhasznaloPreset = [perms[0], perms[1]];
+
+    if (postUserRole == 'felhasznalo') postUserPerms = felhasznaloPreset;
+
+    bcrypt.hash(random.trim(), 10).then((hash) => {
+      console.log(hash);
+      postUserPassword = hash;
+
+      postUserDaysLeft = postUserMaxdays;
+
+      axios.request({
+        method: 'POST',
+        url: `${url}/users/register`,
+        headers: {
+          'Content-Type': 'application/json',
+          'submittingId': user.$id
+        },
+        data: {
+          email: postUserEmail,
+          password: postUserPassword,
+          name: postUserUsername,
+          role: postUserRole,
+          manager: postUserManager,
+          perms: postUserPerms,
+          maxdays: postUserMaxdays,
+          remainingdays: postUserDaysLeft
+        }
+      }).then((response) => {
+        if (response.status != 200) setError(true);
+        if (response.data.status == 'fail') setError(true);
+        console.log(response);
+        handleUpdate();
+        setSuccess(true);
+      }).catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+
+    }).catch((error) => {
+      console.log(error);
+      setErrorCode(ErrorCodes.FailedToEncryptPassword);
+      setError(true);
+    });
   };
 
   const handleSubmitCreate = () => {
@@ -522,6 +596,14 @@ const UsersList = () => {
             createUser();
           }}>
             Új felhasználó
+          </Button>
+        )}
+        {devmode && (
+          <Button type='button' className='btn-primary mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
+            e.preventDefault();
+            createRandomUser();
+          }}>
+            Generate Radnom User
           </Button>
         )}
         {(user?.prefs?.perms?.includes('hr.edit_user_current_state') && new Date().getMonth() == 2) && (
