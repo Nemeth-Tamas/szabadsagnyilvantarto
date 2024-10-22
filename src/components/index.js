@@ -8,3 +8,4 @@ export { default as BetterErrorToast } from './BetterErrorToast';
 export { default as ErrorCodes } from './ErrorCodes';
 export { default as SuccessToast } from './SuccessToast';
 export { default as PasswordField } from './PasswordField';
+export { default as LoadingCircle } from './LoadingCircle';

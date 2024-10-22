@@ -4,9 +4,10 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { Button, ButtonGroup, Modal, Table, ToastContainer } from 'react-bootstrap';
-import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast } from '../components';
+import { Button, ButtonGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
+import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast, LoadingCircle } from '../components';
 import bcrypt from 'bcryptjs';
+import { functions } from '../appwrite';
 
 const UsersList = () => {
   const { theme } = useContext(ThemeContext);
@@ -17,6 +18,8 @@ const UsersList = () => {
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const devmode = import.meta.env.VITE_DEVMODE;
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [sendLoading, setSendLoading] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
@@ -90,19 +93,76 @@ const UsersList = () => {
   // TODO: Everywhere change setError to return
   const handleView = (id, name) => {
     setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
-    axios.request({
-      method: 'GET',
-      url: `${url}/szabadsagok/${id}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      setUserCalendarData(response.data.szabadsag.documents);
+    // axios.request({
+    //   method: 'GET',
+    //   url: `${url}/szabadsagok/${id}`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   setUserCalendarData(response.data.szabadsag.documents);
+    //   setUidForDownload(id);
+    //   setUnameForDownload(name)
+
+    //   // get user max and left days
+    //   setErrorCode(ErrorCodes.FailedToLoadUser);
+    //   axios.request({
+    //     method: 'GET',
+    //     url: `${url}/users/${id}`,
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'submittingId': user.$id
+    //     }
+    //   }).then((response) => {
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     console.log(response);
+    //     setUserCalendarStats(response.data.user.prefs);
+    //     // get sick days
+    //     const options = {
+    //       method: 'GET',
+    //       url: `${url}/tappenz/${id}/cumulative`,
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         'submittingId': user.$id
+    //       }
+    //     }
+
+    //     axios.request(options).then((response) => {
+    //       if (response.status != 200) { setError(true); return; }
+    //       if (response.data.status == 'fail') { setError(true); return; }
+
+    //       setTappenz(response.data.cumulative);
+    //       setShowCalendar(true);
+    //     }).catch((error) => { 
+    //       console.log(error);
+    //       setError(true);
+    //     });
+    //   }).catch((error) => {
+    //     console.log(error);
+    //     setErrorCode(ErrorCodes.FailedToLoadUser);
+    //     setError(true);
+    //   });
+
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETSZABADSAGOKBYID, JSON.stringify({
+      submittingId: user.$id,
+      userId: id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setUserCalendarData(data.szabadsag.documents);
       setUidForDownload(id);
-      setUnameForDownload(name)
+      setUnameForDownload(name);
 
       // get user max and left days
       setErrorCode(ErrorCodes.FailedToLoadUser);
@@ -119,22 +179,38 @@ const UsersList = () => {
         console.log(response);
         setUserCalendarStats(response.data.user.prefs);
         // get sick days
-        const options = {
-          method: 'GET',
-          url: `${url}/tappenz/${id}/cumulative`,
-          headers: {
-            'Content-Type': 'application/json',
-            'submittingId': user.$id
-          }
-        }
+        // const options = {
+        //   method: 'GET',
+        //   url: `${url}/tappenz/${id}/cumulative`,
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'submittingId': user.$id
+        //   }
+        // }
 
-        axios.request(options).then((response) => {
-          if (response.status != 200) { setError(true); return; }
-          if (response.data.status == 'fail') { setError(true); return; }
+        // axios.request(options).then((response) => {
+        //   if (response.status != 200) { setError(true); return; }
+        //   if (response.data.status == 'fail') { setError(true); return; }
 
-          setTappenz(response.data.cumulative);
+        //   setTappenz(response.data.cumulative);
+        //   setShowCalendar(true);
+        // }).catch((error) => { 
+        //   console.log(error);
+        //   setError(true);
+        // });
+        functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_CUMULATIVE, JSON.stringify({
+          submittingId: user.$id,
+          userId: id
+        }))
+        .then((response) => {
+          let data = JSON.parse(response.responseBody);
+          console.log(data);
+          if (data.status == 'fail') setError(true);
+          setTappenz(data.cumulative);
+          setLoading(false);
           setShowCalendar(true);
-        }).catch((error) => { 
+        })
+        .catch((error) => {
           console.log(error);
           setError(true);
         });
@@ -143,12 +219,7 @@ const UsersList = () => {
         setErrorCode(ErrorCodes.FailedToLoadUser);
         setError(true);
       });
-
-    }).catch((error) => {
-      console.log(error);
-      setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
-      setError(true);
-    });
+    })
   };
 
   const deleteUser = (id) => {
@@ -409,25 +480,43 @@ const UsersList = () => {
     }
 
     setErrorCode(ErrorCodes.FailedToSendMessage);
-    axios.request({
-      method: 'POST',
-      url: `${url}/uzenetek/create`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        userId: postUserId,
-        message: postMessageContent,
-        date: postMessageDate
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      console.log(response);
+    // axios.request({
+    //   method: 'POST',
+    //   url: `${url}/uzenetek/create`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     userId: postUserId,
+    //     message: postMessageContent,
+    //     date: postMessageDate
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   console.log(response);
+    //   handleUpdate();
+    //   handleSendMessageClose();
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_CREATEUZENET, JSON.stringify({
+      submittingId: user.$id,
+      message: postMessageContent,
+      userId: postUserId,
+      date: postMessageDate
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
       handleUpdate();
+      setSendLoading(false);
       handleSendMessageClose();
-    }).catch((error) => {
+    })
+    .catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -486,6 +575,16 @@ const UsersList = () => {
         </Modal.Footer>
       </Modal>
 
+      <Modal variant={theme} show={loading} centered>
+        <Modal.Body>
+          <div className="d-flex justify-content-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
       <Modal variant={theme} show={showSendMessage} onHide={handleSendMessageClose} centered>
         <Modal.Header closeButton>
           <Modal.Title>Üzenet küldés</Modal.Title>
@@ -502,8 +601,27 @@ const UsersList = () => {
           <Button variant={theme} onClick={() => handleSendMessageClose()}>
             Bezárás
           </Button>
-          <Button variant="success" onClick={handleSubmitMessage}>
-            Mentés
+          <Button variant="success" onClick={(e) => {
+              e.preventDefault();
+              setSendLoading(true);
+              handleSubmitMessage()
+            }}>
+              {sendLoading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Küldés...
+                </>
+              ) : (
+                <>
+                  Mentés
+                </>
+              )}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -637,6 +755,7 @@ const UsersList = () => {
               <td>
                 <Button type='button' className='btn-primary my-1 mx-1 shadow-smc' onClick={(e) => {
                   e.preventDefault();
+                  setLoading(true);
                   handleView(u.$id, u.name);
                 }}>
                   Naptár

@@ -4,9 +4,9 @@ import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser, selectUser, setUser } from '../store/userSlice';
-import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes, PasswordField } from '../components';
+import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes, PasswordField, LoadingCircle } from '../components';
 import axios from 'axios';
-import { getUserData, updatePassword } from '../appwrite';
+import { functions, getUserData, updatePassword } from '../appwrite';
 
 const Home = () => {
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
@@ -16,6 +16,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.RequestNotSent);
+  const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
@@ -174,76 +175,127 @@ const Home = () => {
 
   const getUserDays = () => {
     let takenDaysCurrent = new Map();
-    let options = {
-      method: 'GET',
-      url: `${url}/szabadsagok/own`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }
+    // let options = {
+    //   method: 'GET',
+    //   url: `${url}/szabadsagok/own`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // }
 
-    setErrorCode(ErrorCodes.ServerError);
-    axios.request(options)
-      .then((response) => {
-        console.log(response);
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        if (response.data.status == 'success') {
-          response.data.szabadsagok.documents.forEach((document) => {
-            document.dates.forEach((date) => {
-              takenDaysCurrent.set(date, document.type)
-            });
-          });
-          setTakenDays(takenDaysCurrent);
+    // axios.request(options)
+    //   .then((response) => {
+    //     console.log(response);
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     if (response.data.status == 'success') {
+    //       response.data.szabadsagok.documents.forEach((document) => {
+    //         document.dates.forEach((date) => {
+    //           takenDaysCurrent.set(date, document.type)
+    //         });
+    //       });
+    //       setTakenDays(takenDaysCurrent);
 
-          // TODO: this needs further testing
-          let today = new Date();
-          if (today.getMonth() < 10) {
-            today.setMonth(today.getMonth());
-            today = new Date(today.getTime() - 1);
-          }
-          if (today.getDate() < 10) {
-            today.setDate(today.getDate() + 1);
-            today = new Date(today.getTime() - 1);
-          }
+    //       // TODO: this needs further testing
+    //       let today = new Date();
+    //       if (today.getMonth() < 10) {
+    //         today.setMonth(today.getMonth());
+    //         today = new Date(today.getTime() - 1);
+    //       }
+    //       if (today.getDate() < 10) {
+    //         today.setDate(today.getDate() + 1);
+    //         today = new Date(today.getTime() - 1);
+    //       }
           
-          let todayString = today.toISOString().split('T')[0];
-          if (takenDaysCurrent.has(todayString)) {
-            setCurrentlyOnLeave(true);
-          } else {
-            setCurrentlyOnLeave(false);
-          }
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        setError(true);
+    //       let todayString = today.toISOString().split('T')[0];
+    //       if (takenDaysCurrent.has(todayString)) {
+    //         setCurrentlyOnLeave(true);
+    //       } else {
+    //         setCurrentlyOnLeave(false);
+    //       }
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    setErrorCode(ErrorCodes.ServerError);
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETSZABADSAGOK, JSON.stringify({
+      submittingId: user.$id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      data.szabadsagok.documents.forEach((document) => {
+        document.dates.forEach((date) => {
+          takenDaysCurrent.set(date, document.type)
+        });
       });
+      setTakenDays(takenDaysCurrent);
+
+      let today = new Date();
+      if (today.getMonth() < 10) {
+        today.setMonth(today.getMonth());
+        today = new Date(today.getTime() - 1);
+      }
+      if (today.getDate() < 10) {
+        today.setDate(today.getDate() + 1);
+        today = new Date(today.getTime() - 1);
+      }
+      
+      let todayString = today.toISOString().split('T')[0];
+      if (takenDaysCurrent.has(todayString)) {
+        setCurrentlyOnLeave(true);
+      } else {
+        setCurrentlyOnLeave(false);
+      }
+
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   }
 
   const getUserSick = () => {
-      let options = {
-        method: 'GET',
-        url: `${url}/tappenz/current/${user.$id}`,
-        headers: {
-          'Content-Type': 'application/json',
-          'submittingId': user.$id
-        }
-      }
+    // let options = {
+    //   method: 'GET',
+    //   url: `${url}/tappenz/current/${user.$id}`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // }
 
-      setErrorCode(ErrorCodes.ServerError);
-      axios.request(options).then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        if (response.data.status == 'success') {
-          console.log("IMPORTANT", response.data.current)
-          setSick(response.data.current);
-        }
-      }).catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+    // axios.request(options).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (response.data.status == 'success') {
+    //     console.log("IMPORTANT", response.data.current)
+    //     setSick(response.data.current);
+    //   }
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    setErrorCode(ErrorCodes.ServerError);
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_CURRENT, JSON.stringify({
+      submittingId: user.$id,
+      userId: user.$id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setSick(data.current);
+    })
+    .catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   }
 
   const handleOnUserSelect = (e) => {
@@ -370,7 +422,8 @@ const Home = () => {
         </Row>}
         <Row className='flex-grow-1'>
           <Col className='col-lg-5 col-md-12'>
-            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
+            { loading ? (<LoadingCircle />) :
+            (<Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
               <Card.Body className='d-flex flex-column align-items-center'>
                 <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
                 <Card.Text className='text-sm-center'>
@@ -378,7 +431,7 @@ const Home = () => {
                 </Card.Text>
                 <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainingdays} />
               </Card.Body>
-            </Card>
+            </Card>)}
           </Col>
           <Col>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
@@ -416,7 +469,8 @@ const Home = () => {
         </Row>
         <Row className='flex-grow-1 mb-5'>
           <Col className='col-lg-7 col-md-12 col-12'>
-            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
+            {loading ? (<LoadingCircle />) : 
+            (<Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Naptár</h1></Card.Title>
                 <CustomCalendarDisplayOnly selectedDates={takenDays} />
@@ -426,7 +480,7 @@ const Home = () => {
                 <Badge bg='info' text='dark' className='p-2 m-2'>Apa szabadság</Badge>
                 <Badge bg='warning' text='dark' className='p-2 m-2'>Szülési szabadság</Badge>
               </Card.Body>
-            </Card>
+            </Card>)}
           </Col>
           <Col>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>

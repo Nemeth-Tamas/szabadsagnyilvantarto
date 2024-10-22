@@ -1,4 +1,4 @@
-import { Account, Client } from "appwrite";
+import { Account, Client, Functions } from "appwrite";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "./store/userSlice";
 import { useNavigate } from "react-router";
@@ -6,6 +6,8 @@ import { useNavigate } from "react-router";
 const client = new Client()
     .setEndpoint(import.meta.env.VITE_APPWRITE_ENPOINT)
     .setProject(import.meta.env.VITE_APPWRITE_PROJECT);
+
+export const functions = new Functions(client);
 
 export const getUserData = async () => {
     try {

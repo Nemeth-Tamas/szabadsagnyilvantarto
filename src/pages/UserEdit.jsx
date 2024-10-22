@@ -3,15 +3,19 @@ import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import { Button, Card, Form, Table, ToastContainer } from 'react-bootstrap';
+import { Button, Card, Form, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import axios from 'axios';
 import { BetterErrorToast, ErrorCodes, SuccessToast } from '../components';
+import { functions } from '../appwrite';
 
 const UserEdit = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser)
   const navigate = useNavigate();
+  const devmode = import.meta.env.VITE_DEVMODE;
   const [loading, setLoading] = useState(true);
+  const [loadingButton, setLoadingButton] = useState(false);
+  const [loadingButton2, setLoadingButton2] = useState(false);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -68,7 +72,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setName(response.data.user.name);
       setUsername(response.data.user.email);
@@ -79,26 +84,46 @@ const UserEdit = () => {
       setMaxDays(response.data.user.prefs.maxdays);
       setSick(response.data.user.prefs.sick);
 
-      axios.request({
-        method: 'GET',
-        url: `${url}/tappenz/${userID}`,
-        headers: {
-          'Content-Type': 'application/json',
-          'submittingId': user.$id
-        }
-      }).then((response2) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
+      // axios.request({
+      //   method: 'GET',
+      //   url: `${url}/tappenz/${userID}`,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'submittingId': user.$id
+      //   }
+      // }).then((response2) => {
+      //   if (response.status != 200) setError(true);
+      //   if (response.data.status == 'fail') setError(true);
 
-        let data = response2.data.tappenz
+      //   let data = response2.data.tappenz
+      //   let tableData = [];
+      //   data.forEach((item) => {
+      //     tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
+      //   })
+      //   setSickTableData(tableData);
+
+      //   setLoading(false);
+      // }).catch((error) => {
+      //   console.log(error);
+      //   setError(true);
+      // });
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETTAPPENZ, JSON.stringify({
+        submittingId: user.$id,
+        userId: userID
+      }))
+      .then((response2) => {
+        let data = JSON.parse(response2.responseBody);
+        if (devmode)
+          console.log(data);
+        if (data.status == 'fail') setError(true);
         let tableData = [];
-        data.forEach((item) => {
+        data.tappenz.forEach((item) => {
           tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
-        })
+        });
         setSickTableData(tableData);
-
         setLoading(false);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         console.log(error);
         setError(true);
       });
@@ -124,7 +149,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -148,7 +174,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -172,7 +199,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -196,7 +224,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -220,7 +249,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -244,7 +274,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -269,7 +300,8 @@ const UserEdit = () => {
     }).then((response) => {
       if (response.status != 200) setError(true);
       if (response.data.status == 'fail') setError(true);
-      console.log(response);
+      if (devmode)
+        console.log(response);
 
       setSuccess(true);
     }).catch((error) => {
@@ -281,26 +313,45 @@ const UserEdit = () => {
   const updateSickStart = (e) => {
     e.preventDefault();
 
-    console.log(sick);
-    axios.request({
-      method: 'POST',
-      url: `${url}/tappenz/start`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        userId: userID,
-        start: sickDate
-      }
-    }).then((response) => {
-      console.log(response);
-      if (response.status != 200) {setError(true); return};
-      if (response.data.status == 'fail') {setError(true); return};
+    if (devmode)
+      console.log(sick);
+    // axios.request({
+    //   method: 'POST',
+    //   url: `${url}/tappenz/start`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     userId: userID,
+    //     start: sickDate
+    //   }
+    // }).then((response) => {
+    //   console.log(response);
+    //   if (response.status != 200) {setError(true); return};
+    //   if (response.data.status == 'fail') {setError(true); return};
 
+    //   setSuccess(true);
+    //   navigate(0);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_START, JSON.stringify({
+      userId: userID,
+      start: sickDate,
+      submittingId: user.$id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
       setSuccess(true);
+      setLoadingButton(false);
       navigate(0);
-    }).catch((error) => {
+    })
+    .catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -308,25 +359,43 @@ const UserEdit = () => {
 
   const updateSickEnd = (e) => {
     e.preventDefault();
-    axios.request({
-      method: 'POST',
-      url: `${url}/tappenz/end`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        userId: userID,
-        end: sickDate
-      }
-    }).then((response) => {
-      console.log(response);
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
+    // axios.request({
+    //   method: 'POST',
+    //   url: `${url}/tappenz/end`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     userId: userID,
+    //     end: sickDate
+    //   }
+    // }).then((response) => {
+    //   console.log(response);
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
 
+    //   setSuccess(true);
+    //   navigate(0);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_END, JSON.stringify({
+      userId: userID,
+      end: sickDate,
+      submittingId: user.$id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
       setSuccess(true);
+      setLoadingButton(false);
       navigate(0);
-    }).catch((error) => {
+    })
+    .catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -357,13 +426,49 @@ const UserEdit = () => {
                     {!sick && (
                       <>
                         <Form.Control type="date" placeholder="Táppénz kezdete" value={sickDate} onChange={(e) => setSickDate(e.target.value)}  />
-                        <Button variant="success" onClick={updateSickStart} className='ms-1'>Mentés</Button>
+                        {loadingButton && (
+                          <Button variant="success" disabled>
+                            <Spinner
+                              as="span"
+                              animation="border"
+                              size="sm"
+                              role="status"
+                              aria-hidden="true"
+                            />
+                            Mentés...
+                          </Button>
+                        )}
+                        {!loadingButton && (
+                          <Button variant="success" onClick={(e) => {
+                            e.preventDefault();
+                            setLoadingButton(true);
+                            updateSickStart(e);
+                          }} className='ms-1'>Mentés</Button>
+                        )}
                       </>
                     )}
                     {sick && (
                       <>
                         <Form.Control type="date" placeholder="Táppénz vége" value={sickDate} onChange={(e) => setSickDate(e.target.value)} />
-                        <Button variant="success" onClick={updateSickEnd} className='ms-1'>Mentés</Button>
+                        {loadingButton && (
+                          <Button variant="success" disabled>
+                            <Spinner
+                              as="span"
+                              animation="border"
+                              size="sm"
+                              role="status"
+                              aria-hidden="true"
+                            />
+                            Mentés...
+                          </Button>
+                        )}
+                        {!loadingButton && (
+                          <Button variant="success" onClick={(e) => {
+                            e.preventDefault();
+                            setLoadingButton(true);
+                            updateSickEnd(e);
+                          }} className='ms-1'>Mentés</Button>
+                        )}
                       </>
                     )}
                   </div>
@@ -386,25 +491,56 @@ const UserEdit = () => {
                             <td>{item[1]}</td>
                             <td><Button variant="danger" onClick={(e) => {
                               e.preventDefault();
-                              axios.request({
-                                method: 'DELETE',
-                                url: `${url}/tappenz/${item[2]}`,
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'submittingId': user.$id
-                                }
-                              }).then((response) => {
-                                console.log(response);
-                                if (response.status != 200) setError(true);
-                                if (response.data.status == 'fail') setError(true);
+                              setLoadingButton2(true);
+                              // axios.request({
+                              //   method: 'DELETE',
+                              //   url: `${url}/tappenz/${item[2]}`,
+                              //   headers: {
+                              //     'Content-Type': 'application/json',
+                              //     'submittingId': user.$id
+                              //   }
+                              // }).then((response) => {
+                              //   if (devmode)
+                              //     console.log(response);
+                              //   if (response.status != 200) setError(true);
+                              //   if (response.data.status == 'fail') setError(true);
 
+                              //   setSuccess(true);
+                              //   navigate(0);
+                              // }).catch((error) => {
+                              //   console.log(error);
+                              //   setError(true);
+                              // });
+                              functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_DELETE, JSON.stringify({
+                                submittingId: user.$id,
+                                deleteId: item[2]
+                              }))
+                              .then((response) => {
+                                let data = JSON.parse(response.responseBody);
+                                if (devmode)
+                                  console.log(data);
+                                if (data.status == 'fail') setError(true);
                                 setSuccess(true);
+                                setLoadingButton2(false);
                                 navigate(0);
-                              }).catch((error) => {
+                              })
+                              .catch((error) => {
                                 console.log(error);
                                 setError(true);
                               });
-                            }}>Törlés</Button></td>
+                            }}>
+                              {loadingButton2 ? (
+                                <>
+                                  <Spinner
+                                  as="span"
+                                  animation="border"
+                                  size="sm"
+                                  role="status"
+                                  aria-hidden="true"
+                                />Törlés...
+                                </>
+                              ) : 'Törlés'}
+                            </Button></td>
                           </tr>
                         ))}
                       </tbody>
