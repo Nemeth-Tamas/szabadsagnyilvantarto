@@ -1,12 +1,13 @@
 
 import React, { useContext, useEffect, useState } from 'react';
-import { Button, Card, Col, Container, Row, ToastContainer } from 'react-bootstrap';
+import { Button, Card, Col, Container, Row, Spinner, ToastContainer } from 'react-bootstrap';
 import { BetterErrorToast, CustomCalendar, ErrorCodes, SuccessToast } from '../components';
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
+import { functions } from '../appwrite';
 
 const MonthCard = ({ month, theme, selectedDates, setSelectedDates }) => {
   let monthStr = "";
@@ -67,6 +68,7 @@ const Plan = () => {
   const [selectedDates, setSelectedDates] = useState([]);
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.RequestNotSent);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,20 +79,31 @@ const Plan = () => {
     }
 
     if (user?.$id) {
-      let options = {
-        method: 'GET',
-        url: `${url}/plans/${user.$id}`,
-        headers: {
-          'Content-Type': 'application/json',
-          'submittingId': user.$id
-        }
-      }
+      // let options = {
+      //   method: 'GET',
+      //   url: `${url}/plans/${user.$id}`,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'submittingId': user.$id
+      //   }
+      // }
 
       setErrorCode(ErrorCodes.ServerError);
-      axios.request(options).then((response) => {
-        if (response.status !== 200) setError(true);
-        if (response.data.status == "fail") setError(true);
-        if (response.data.filledOut == true) {
+      // axios.request(options).then((response) => {
+      //   if (response.status !== 200) setError(true);
+      //   if (response.data.status == "fail") setError(true);
+      //   if (response.data.filledOut == true) {
+      //     navigate('/');
+      //   }
+      // }).catch((error) => {});
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_PLANS, JSON.stringify({
+        submittingId: user.$id,
+        userId: user.$id
+      })).then((response) => {
+        let data = JSON.parse(response.responseBody);
+        console.log(data);
+        if (data.status == 'fail') setError(true);
+        if (data.filledOut == true) {
           navigate('/');
         }
       }).catch((error) => {});
@@ -98,39 +111,65 @@ const Plan = () => {
   }, []);
 
   const handleSave = async () => {
-    let options = {
-      method: 'POST',
-      url: `${url}/plans`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        planDays: selectedDates.sort()
-      }
-    }
+    // let options = {
+    //   method: 'POST',
+    //   url: `${url}/plans`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     planDays: selectedDates.sort()
+    //   }
+    // }
 
     console.log(options);
 
     setErrorCode(ErrorCodes.ServerError);
-    axios.request(options).then((response) => {
-      if (response.status !== 200) setError(true);
-      setErrorCode(ErrorCodes.FailedToSavePlan);
-      if (response.data.status == "fail") {
-        if (response.data.errorCode == "emptyPlan" || response.data.errorCode == "notAllDaysUsed") {
-          console.log(response.data);
-          setErrorCode(ErrorCodes.PlanContainsToFewDays);
-        } else if (response.data.errorCode == "tooManyDaysUsed") {
-          setErrorCode(ErrorCodes.PlanContainsToManyDays);
-        } else if (response.data.errorCode == "noDaysSet") {
-          setErrorCode(ErrorCodes.PlanMaxNotSet);
-        }
-        setError(true);
+    // axios.request(options).then((response) => {
+    //   if (response.status !== 200) setError(true);
+    //   setErrorCode(ErrorCodes.FailedToSavePlan);
+    //   if (response.data.status == "fail") {
+    //     if (response.data.errorCode == "emptyPlan" || response.data.errorCode == "notAllDaysUsed") {
+    //       console.log(response.data);
+    //       setErrorCode(ErrorCodes.PlanContainsToFewDays);
+    //     } else if (response.data.errorCode == "tooManyDaysUsed") {
+    //       setErrorCode(ErrorCodes.PlanContainsToManyDays);
+    //     } else if (response.data.errorCode == "noDaysSet") {
+    //       setErrorCode(ErrorCodes.PlanMaxNotSet);
+    //     }
+    //     setError(true);
+    //   } else {
+    //     navigate('/');
+    //   }
+
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_SAVE_PLANS, JSON.stringify({
+      submittingId: user.$id,
+      plan: selectedDates.sort()
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      if (data.errorCode == "emptyPlan" || data.errorCode == "notAllDaysUsed") {
+        console.log(data);
+        setLoading(false);
+        setErrorCode(ErrorCodes.PlanContainsToFewDays);
+      } else if (data.errorCode == "tooManyDaysUsed") {
+        setLoading(false);
+        setErrorCode(ErrorCodes.PlanContainsToManyDays);
+      } else if (data.errorCode == "noDaysSet") {
+        setLoading(false);
+        setErrorCode(ErrorCodes.PlanMaxNotSet);
       } else {
+        setLoading(false);
         navigate('/');
       }
-
-    }).catch((error) => {
+    })
+    .catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -149,8 +188,20 @@ const Plan = () => {
         <Row className='mt-auto w-100'>
           <Button variant='primary' className='mx-auto mb-0 w-25' onClick={(e) => {
             e.preventDefault();
+            setLoading(true);
             handleSave();
-          }}>Terv Mentése</Button>
+          }}>
+            {loading && (
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+            )}
+            Terv Mentése
+          </Button>
         </Row>
         <Row>
           <Col lg={4} sm={12}>
