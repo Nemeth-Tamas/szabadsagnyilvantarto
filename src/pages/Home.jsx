@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Badge, Button, ButtonGroup, Card, Col, Container, FormSelect, Modal, Row, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
+import { Badge, Button, ButtonGroup, Card, Col, Container, FormSelect, Modal, Row, Spinner, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -422,16 +422,22 @@ const Home = () => {
         </Row>}
         <Row className='flex-grow-1'>
           <Col className='col-lg-5 col-md-12'>
-            { loading ? (<LoadingCircle />) :
-            (<Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
-              <Card.Body className='d-flex flex-column align-items-center'>
-                <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
-                <Card.Text className='text-sm-center'>
-                  Rendelkezésre álló szabadságok száma / Összes szabadság száma
-                </Card.Text>
-                <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainingdays} />
-              </Card.Body>
-            </Card>)}
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
+              {loading ? (
+                <Card.Body className='d-flex flex-column align-items-center'>
+                  <Spinner animation='border' role='status' />
+                  <p className='text-center'>Betöltés...</p>
+                </Card.Body>
+              ) : (
+                <Card.Body className='d-flex flex-column align-items-center'>
+                  <Card.Title><h1 className='display-5 text-center'>{user?.name}</h1></Card.Title>
+                  <Card.Text className='text-sm-center'>
+                    Rendelkezésre álló szabadságok száma / Összes szabadság száma
+                  </Card.Text>
+                  <RemainingIndicator maxDays={user?.prefs?.maxdays} remainingDays={user?.prefs?.remainingdays} />
+                </Card.Body>
+              )}
+            </Card>
           </Col>
           <Col>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-5 shadow-light" : "mt-5 shadow-dark"}>
@@ -469,18 +475,24 @@ const Home = () => {
         </Row>
         <Row className='flex-grow-1 mb-5'>
           <Col className='col-lg-7 col-md-12 col-12'>
-            {loading ? (<LoadingCircle />) : 
-            (<Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
-              <Card.Body>
-                <Card.Title><h1 className='display-6 text-center'>Naptár</h1></Card.Title>
-                <CustomCalendarDisplayOnly selectedDates={takenDays} />
+            <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
+              { loading ? (
+                <Card.Body className='d-flex flex-column align-items-center'>
+                  <Spinner animation='border' role='status' />
+                  <p className='text-center'>Betöltés...</p>
+                </Card.Body>
+              ) : (
+                <Card.Body>
+                  <Card.Title><h1 className='display-6 text-center'>Naptár</h1></Card.Title>
+                  <CustomCalendarDisplayOnly selectedDates={takenDays} />
 
-                <Badge bg='secondary' className='p-2 mt-3 m-2'>Szabadság</Badge>
-                <Badge bg='dark' className='p-2 m-2 border'>Hozzátartozó halála</Badge>
-                <Badge bg='info' text='dark' className='p-2 m-2'>Apa szabadság</Badge>
-                <Badge bg='warning' text='dark' className='p-2 m-2'>Szülési szabadság</Badge>
-              </Card.Body>
-            </Card>)}
+                  <Badge bg='secondary' className='p-2 mt-3 m-2'>Szabadság</Badge>
+                  <Badge bg='dark' className='p-2 m-2 border'>Hozzátartozó halála</Badge>
+                  <Badge bg='info' text='dark' className='p-2 m-2'>Apa szabadság</Badge>
+                  <Badge bg='warning' text='dark' className='p-2 m-2'>Szülési szabadság</Badge>
+                </Card.Body>
+              )}
+            </Card>
           </Col>
           <Col>
             <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "mt-4 shadow-light" : "mt-4 shadow-dark"}>
