@@ -146,7 +146,7 @@ const Requests = () => {
     setLoading(true);
     functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETE_KERELMEK, JSON.stringify({
       submittingId: user.$id,
-      kerelmId: id
+      kerelemId: id
     })).then((response) => {
       let data = JSON.parse(response.responseBody);
       console.log(data);
@@ -161,24 +161,36 @@ const Requests = () => {
   const handleApprove = (id) => {
     console.log(id);
 
-    const options = {
-      method: 'PUT',
-      url: `${url}/kerelmek/${id}/approve`,
-      headers: {
-        'submittingId': user.$id
-      }
-    }
+    // const options = {
+    //   method: 'PUT',
+    //   url: `${url}/kerelmek/${id}/approve`,
+    //   headers: {
+    //     'submittingId': user.$id
+    //   }
+    // }
 
-    console.log(options);
+    // console.log(options);
 
-    axios.request(options)
-      .then((response) => {
-        console.log(response);
-        handleUpdate();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // axios.request(options)
+    //   .then((response) => {
+    //     console.log(response);
+    //     handleUpdate();
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+    setLoading(true);
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_APPROVE_KERELMEK, JSON.stringify({
+      submittingId: user.$id,
+      kerelemId: id
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      handleUpdate();
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   };
 
   const handleReject = (id) => {
