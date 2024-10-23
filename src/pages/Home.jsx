@@ -169,29 +169,41 @@ const Home = () => {
   }
 
   const getUserPlanFilled = () => {
-    let options = {
-      method: 'GET',
-      url: `${url}/plans/${submittingId}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }
+    // let options = {
+    //   method: 'GET',
+    //   url: `${url}/plans/${submittingId}`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // }
 
     setErrorCode(ErrorCodes.ServerError);
-    axios.request(options)
-      .then((response) => {
-        console.log(response);
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        if (response.data.status == 'success') {
-          setPlanFilledOut(response.data.filledOut);
-          console.log(response.data.filledOut);
-        }
-      }).catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+    // axios.request(options)
+    //   .then((response) => {
+    //     console.log(response);
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     if (response.data.status == 'success') {
+    //       setPlanFilledOut(response.data.filledOut);
+    //       console.log(response.data.filledOut);
+    //     }
+    //   }).catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_PLANS, JSON.stringify({
+      submittingId: submittingId,
+      userId: submittingId
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setPlanFilledOut(data.filledOut);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   }
 
   const getUserDays = () => {
