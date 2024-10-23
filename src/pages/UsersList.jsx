@@ -243,23 +243,50 @@ const UsersList = () => {
   };
 
   const deletePlan = (id) => {
-    if (id == "reset") setErrorCode(ErrorCodes.ErrorWhileDeletingAllPlans);
-    else setErrorCode(ErrorCodes.ErrorWhileDeletingSignlePlan);
-    axios.request({
-      method: 'DELETE',
-      url: `${url}/plans/${id}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      console.log(response);
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    if (id == "reset") {
+      setErrorCode(ErrorCodes.ErrorWhileDeletingAllPlans);
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETEALLPLANS, JSON.stringify({
+        submittingId: user.$id
+      })).then((response) => {
+        let data = JSON.parse(response.responseBody);
+        console.log(data);
+        if (data.status == 'fail') setError(true);
+        handleUpdate();
+      }).catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+    }
+    else {
+      setErrorCode(ErrorCodes.ErrorWhileDeletingSignlePlan)
+      // axios.request({
+      //   method: 'DELETE',
+      //   url: `${url}/plans/${id}`,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'submittingId': user.$id
+      //   }
+      // }).then((response) => {
+      //   if (response.status != 200) setError(true);
+      //   if (response.data.status == 'fail') setError(true);
+      //   console.log(response);
+      // }).catch((error) => {
+      //   console.log(error);
+      //   setError(true);
+      // });
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETEPLAN, JSON.stringify({
+        submittingId: user.$id,
+        userId: id
+      })).then((response) => {
+        let data = JSON.parse(response.responseBody);
+        console.log(data);
+        if (data.status == 'fail') setError(true);
+        handleUpdate();
+      }).catch((error) => {
+        console.log(error);
+        setError(true);
+      });
+    };
   };
 
   const createUser = () => {
