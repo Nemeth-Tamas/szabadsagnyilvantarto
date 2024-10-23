@@ -204,27 +204,40 @@ const Requests = () => {
     handleRejectClose();
     console.log(rejectId);
 
-    const options = {
-      method: 'PUT',
-      url: `${url}/kerelmek/${rejectId}/reject`,
-      headers: {
-        'submittingId': user.$id
-      },
-      data: {
-        rejectedMessage: rejectMessage
-      }
-    }
+    // const options = {
+    //   method: 'PUT',
+    //   url: `${url}/kerelmek/${rejectId}/reject`,
+    //   headers: {
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     rejectedMessage: rejectMessage
+    //   }
+    // }
 
-    console.log(options);
+    // console.log(options);
 
-    axios.request(options)
-      .then((response) => {
-        console.log(response);
-        handleUpdate();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // axios.request(options)
+    //   .then((response) => {
+    //     console.log(response);
+    //     handleUpdate();
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+    setLoading(true);
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_REJECT_KERELMEK, JSON.stringify({
+      submittingId: user.$id,
+      kerelemId: rejectId,
+      rejectedMessage: rejectMessage
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      handleUpdate();
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   };
 
   return (
