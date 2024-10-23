@@ -125,24 +125,37 @@ const Requests = () => {
   const handleDelete = (id) => {
     console.log(id);
 
-    const options = {
-      method: 'DELETE',
-      url: `${url}/kerelmek/${id}`,
-      headers: {
-        'submittingId': user.$id
-      }
-    }
+    // const options = {
+    //   method: 'DELETE',
+    //   url: `${url}/kerelmek/${id}`,
+    //   headers: {
+    //     'submittingId': user.$id
+    //   }
+    // }
 
-    console.log(options);
+    // console.log(options);
 
-    axios.request(options)
-      .then((response) => {
-        console.log(response);
-        handleUpdate();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // axios.request(options)
+    //   .then((response) => {
+    //     console.log(response);
+    //     handleUpdate();
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
+    setLoading(true);
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETE_KERELMEK, JSON.stringify({
+      submittingId: user.$id,
+      kerelmId: id
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+
+      handleUpdate();
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   };
 
   const handleApprove = (id) => {

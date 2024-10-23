@@ -140,7 +140,7 @@ const Home = () => {
     })
     .catch((error) => {
       console.log(error);
-      setloadingSendButton(false);
+      setLoadingSendButton(false);
       setError(true);
     });
     // let options = {
