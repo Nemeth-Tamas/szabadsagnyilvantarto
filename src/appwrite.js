@@ -1,4 +1,4 @@
-import { Account, Client, Functions } from "appwrite";
+import { Account, Client, Functions, Storage } from "appwrite";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "./store/userSlice";
 import { useNavigate } from "react-router";
@@ -8,6 +8,8 @@ const client = new Client()
     .setProject(import.meta.env.VITE_APPWRITE_PROJECT);
 
 export const functions = new Functions(client);
+
+export const storage = new Storage(client);
 
 export const getUserData = async () => {
     try {

@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Button, ButtonGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast, LoadingCircle } from '../components';
 import bcrypt from 'bcryptjs';
-import { functions } from '../appwrite';
+import { functions, storage } from '../appwrite';
 
 const UsersList = () => {
   const { theme } = useContext(ThemeContext);
@@ -20,6 +20,7 @@ const UsersList = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
+  const [loadingDownload, setLoadingDownload] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [userCalendarData, setUserCalendarData] = useState(null);
@@ -556,30 +557,50 @@ const UsersList = () => {
 
   const handleDownload = (e, uid) => {
     e.preventDefault();
-    let options = {
-      method: 'GET',
-      url: `${url}/plans/${uid}/excel`,
-      headers: {
-        'submittingId': user.$id
-      },
-      responseType: 'arraybuffer'
-    }
+    // let options = {
+    //   method: 'GET',
+    //   url: `${url}/plans/${uid}/excel`,
+    //   headers: {
+    //     'submittingId': user.$id
+    //   },
+    //   responseType: 'arraybuffer'
+    // }
 
-    axios.request(options).then((response) => {
-      // Download the returned excel file from buffer
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+    // axios.request(options).then((response) => {
+    //   // Download the returned excel file from buffer
+    //   const url = window.URL.createObjectURL(new Blob([response.data]));
+    //   const link = document.createElement('a');
+    //   link.href = url;
+    //   let date = new Date();
+    //   let dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + '_' + date.getHours() + '-' + date.getMinutes() + '-' + date.getSeconds();
+    //   let filename = unameForDownload.replace(/ /g, '-') + '_' + dateString + '.xlsx';
+    //   link.setAttribute('download', filename);
+    //   document.body.appendChild(link);
+
+    //   link.click();
+    //   link.remove();
+
+    //   console.log(response);
+    // }).catch((error) => { console.log(error) });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_PLANS_EXCEL, JSON.stringify({
+      submittingId: user.$id,
+      userId: uid
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      let fileId = data.fileId;
+
+      const res = storage.getFileDownload(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
+      console.log(res);
       const link = document.createElement('a');
-      link.href = url;
-      let date = new Date();
-      let dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + '_' + date.getHours() + '-' + date.getMinutes() + '-' + date.getSeconds();
-      let filename = unameForDownload.replace(/ /g, '-') + '_' + dateString + '.xlsx';
-      link.setAttribute('download', filename);
+      link.href = res.href;
       document.body.appendChild(link);
 
       link.click();
       link.remove();
 
-      console.log(response);
+      storage.deleteFile(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
+      setLoadingDownload(false);
     }).catch((error) => { console.log(error) });
   }
 
@@ -593,7 +614,20 @@ const UsersList = () => {
           <ModalCalendar userData={userCalendarData} userStats={userCalendarStats} tappenz={tappenz} />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant={theme} onClick={(e) => handleDownload(e, uidForDownload)}>
+          <Button variant={theme} onClick={(e) => {
+            e.preventDefault();
+            setLoadingDownload(true);
+            handleDownload(e, uidForDownload)
+          }}>
+            {loadingDownload && (
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+            )}
             Terv letöltése
           </Button>
           <Button variant={theme} onClick={() => handleCalendarClose()}>
