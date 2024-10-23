@@ -17,6 +17,7 @@ const Home = () => {
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.RequestNotSent);
   const [loading, setLoading] = useState(true);
+  const [loadingSendButton, setLoadingSendButton] = useState(false);
   const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
@@ -89,30 +90,13 @@ const Home = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(selectedDates);
-    let options = {
-      method: 'POST',
-      url: `${url}/kerelmek/add`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': submittingId
-      },
-      data: {
-        // managerId: user?.prefs?.manager,
-        managerId: data.find((user) => user.$id == submittingId)?.prefs?.manager,
-        type: selectedType,
-        dates: selectedDates
-      }
-    }
-
-    if (options.data.managerId == undefined) {
-      options.data.managerId = user?.prefs?.manager;
-    }
 
     if (selectedDates.length == 0) return;
     if (user?.prefs?.remainingdays - selectedDates.length < 0) {
       if (selectedType == 'SZ') {
         setErrorCode(ErrorCodes.NotEnoughLeaves);
         setError(true);
+        setLoadingSendButton(false);
         return;
       }
     }
@@ -123,23 +107,60 @@ const Home = () => {
         setErrorCode(ErrorCodes.AlreadyOnLeave);
         setError(true);
         doNotProceed = true;
+        setLoadingSendButton(false);
         return;
       }
-    })
+    });
 
     if (doNotProceed) return;
+
     setErrorCode(ErrorCodes.RequestNotSent);
-    axios.request(options)
-      .then((response) => {
-        console.log("HERE:", response);
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        if (response.data.status == 'success') setSuccess(true);
-      })
-      .catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+    // axios.request(options)
+    //   .then((response) => {
+    //     console.log("HERE:", response);
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     if (response.data.status == 'success') setSuccess(true);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_ADD_KERELEM, JSON.stringify({
+      submittingId: submittingId,
+      managerId: data.find((user) => user.$id == submittingId)?.prefs?.manager || user?.prefs?.manager,
+      type: selectedType,
+      dates: selectedDates
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setSuccess(true);
+      setLoadingSendButton(false);
+    })
+    .catch((error) => {
+      console.log(error);
+      setloadingSendButton(false);
+      setError(true);
+    });
+    // let options = {
+    //   method: 'POST',
+    //   url: `${url}/kerelmek/add`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': submittingId
+    //   },
+    //   data: {
+    //     // managerId: user?.prefs?.manager,
+    //     managerId: data.find((user) => user.$id == submittingId)?.prefs?.manager,
+    //     type: selectedType,
+    //     dates: selectedDates
+    //   }
+    // }
+
+    // if (options.data.managerId == undefined) {
+    //   options.data.managerId = user?.prefs?.manager;
+    // }
     setSelectedDates([]);
   }
 
@@ -468,7 +489,22 @@ const Home = () => {
                     </>
                   )}
                 </ButtonGroup>
-                <button type="button" className='btn btn-success mt-3 shadow-smc' onClick={handleSubmit}>Küldés</button>
+                <button type="button" className='btn btn-success mt-3 shadow-smc' onClick={(e) => {
+                  e.preventDefault();
+                  setLoadingSendButton(true);
+                  handleSubmit(e);
+                }}>
+                  {loadingSendButton && (
+                    <Spinner
+                      as="span"
+                      animation="border"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />
+                  )}
+                  Küldés
+                </button>
               </Card.Body>
             </Card>
           </Col>
