@@ -4,8 +4,9 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
-import { Button, Modal, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
+import { Button, Modal, Spinner, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
+import { functions } from '../appwrite';
 
 const Requests = () => {
   const { theme } = useContext(ThemeContext);
@@ -18,6 +19,9 @@ const Requests = () => {
   const [showRejectMessage, setShowRejectMessage] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectMessage, setRejectMessage] = useState('');
+  const [errorCounter, setErrorCounter] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingButton, setLoadingButton] = useState(false);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const navigate = useNavigate();
 
@@ -38,47 +42,84 @@ const Requests = () => {
   };
 
   const loadMore = () => {
-    axios.request({
-      method: 'GET',
-      url: `${url}/kerelmek?offset=${data.length}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
+    // axios.request({
+    //   method: 'GET',
+    //   url: `${url}/kerelmek?offset=${data.length}`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // })
+    //   .then((response) => {
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     console.log(response);
+    //     setData(prevData => [...prevData, ...response.data.kerelmek.documents]);
+    //     setTotal(response.data.kerelmek.total);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
+      submittingId: user.$id,
+      offset: data.length
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setData(prevData => [...prevData, ...data.kerelmek.documents]);
+      setTotal(data.kerelmek.total);
+      setLoadingButton(false);
     })
-      .then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log(response);
-        setData(prevData => [...prevData, ...response.data.kerelmek.documents]);
-        setTotal(response.data.kerelmek.total);
-      })
-      .catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+    .catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   }
 
   const handleUpdate = () => {
-    axios.request({
-      method: 'GET',
-      url: `${url}/kerelmek`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
+    // axios.request({
+    //   method: 'GET',
+    //   url: `${url}/kerelmek`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // })
+    //   .then((response) => {
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     console.log(response);
+    //     setData(response.data.kerelmek.documents);
+    //     setTotal(response.data.kerelmek.total);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
+      submittingId: user.$id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setData(data.kerelmek.documents);
+      setTotal(data.kerelmek.total);
+      setErrorCounter(0);
+      setLoading(false);
     })
-      .then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log(response);
-        setData(response.data.kerelmek.documents);
-        setTotal(response.data.kerelmek.total);
-      })
-      .catch((error) => {
+    .catch((error) => {
+      if (errorCounter < 3) {
+        handleUpdate();
+        setErrorCounter(errorCounter + 1);
+      } else {
         console.log(error);
         setError(true);
-      });
+      }
+    });
   };
 
   const handleDelete = (id) => {
@@ -206,79 +247,99 @@ const Requests = () => {
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
+          setLoading(true);
           handleUpdate();
         }}>Frissítés</Button>
         {total > data.length ? (
         <Button type='button' className='btn-primary mt-2 ms-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
+          setLoadingButton(true);
           loadMore();
         }}>
-          {data.length == 0 ? "Nincs több kérelem" : "Több kérelem betöltése"}
+          {loadingButton && (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+              Több kérelem betöltése...
+            </>
+          )}
+          {(data.length == 0 && !loadingButton) ? "Nincs több kérelem" : "Több kérelem betöltése"}
         </Button>
         ) : <></>}
       </div>
-      <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'} >
-        <thead>
-          <tr>
-            <th style={{ maxWidth: "12%", width: "12%" }}>Név</th>
-            <th style={{ maxWidth: "27%", width: "27%" }}>Dátumok</th>
-            <th style={{ maxWidth: "9%", width: "9%" }}>Típus</th>
-            <th style={{ maxWidth: "9%", width: "9%" }}>Státusz</th>
-            <th style={{ maxWidth: "27%", width: "27%" }}>Visszautasítás oka</th>
-            <th style={{ maxWidth: "16%", width: "16%" }}>Műveletek</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item, index) => (
-            <tr key={item.$id}>
-              <td><strong>{item.submittingName}</strong></td>
-              <td>{item.dates.join(", ")}</td>
-              <td>{item.type == "SZ" ? "Szabadság" :
-                item.type == "T" ? "Táppénz" :
-                  item.type == "H" ? "Hozzátartozó halála" :
-                    item.type == "A" ? "Apa szabadság" : "Szülési szabadság"}</td>
-              <td>{item.approved ? "Elfogadva" : item.rejected ? "Visszautasítva" : "Várakozik"}</td>
-              <td>{item.rejectedMessage ? item.rejectedMessage : ""}</td>
-              <td>
-                {item.approved ? "" : item.rejected ? "" : (<>
-                  <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
-                    e.preventDefault();
-                    handleApprove(item.$id);
-                  }}>Elfogadás</Button>
-                  {user.prefs.perms.includes('irpdavezeto.reject') ?
-                    <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
-                      e.preventDefault();
-                      handleReject(item.$id);
-                    }}>Visszautasítás</Button> : ""}<br /></>
-                )}
-                <Button type='button' className='btn-primary mx-1 my-1 shadow-smc' onClick={(e) => {
-                  e.preventDefault();
-                  handleView(item.$id);
-                }}>Megtekintés</Button>
-                {user.prefs.perms.includes('hr.edit_user_current_state') ?
-                  <Button type='button' className='btn-danger my-1 me-0 mx-1 shadow-smc' onClick={(e) => {
-                    e.preventDefault();
-                    if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
-                      handleDelete(item.$id);
-                    }
-                  }}>Törlés</Button> : ""}
-                {/* Development Function */}
-                {/* <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
-                  e.preventDefault();
-                  async function copyToClipboard(text) {
-                    if ('clipboard' in navigator) {
-                      return await navigator.clipboard.writeText(text);
-                    } else {
-                      return document.execCommand('copy', true, text);
-                    }
-                  }
-                  copyToClipboard(item.$id);
-                }}></Button> */}
-              </td>
+      {loading ? (
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      ) : (
+        <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'} >
+          <thead>
+            <tr>
+              <th style={{ maxWidth: "12%", width: "12%" }}>Név</th>
+              <th style={{ maxWidth: "27%", width: "27%" }}>Dátumok</th>
+              <th style={{ maxWidth: "9%", width: "9%" }}>Típus</th>
+              <th style={{ maxWidth: "9%", width: "9%" }}>Státusz</th>
+              <th style={{ maxWidth: "27%", width: "27%" }}>Visszautasítás oka</th>
+              <th style={{ maxWidth: "16%", width: "16%" }}>Műveletek</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {data.map((item, index) => (
+              <tr key={item.$id}>
+                <td><strong>{item.submittingName}</strong></td>
+                <td>{item.dates.join(", ")}</td>
+                <td>{item.type == "SZ" ? "Szabadság" :
+                  item.type == "T" ? "Táppénz" :
+                    item.type == "H" ? "Hozzátartozó halála" :
+                      item.type == "A" ? "Apa szabadság" : "Szülési szabadság"}</td>
+                <td>{item.approved ? "Elfogadva" : item.rejected ? "Visszautasítva" : "Várakozik"}</td>
+                <td>{item.rejectedMessage ? item.rejectedMessage : ""}</td>
+                <td>
+                  {item.approved ? "" : item.rejected ? "" : (<>
+                    <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
+                      e.preventDefault();
+                      handleApprove(item.$id);
+                    }}>Elfogadás</Button>
+                    {user.prefs.perms.includes('irpdavezeto.reject') ?
+                      <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
+                        e.preventDefault();
+                        handleReject(item.$id);
+                      }}>Visszautasítás</Button> : ""}<br /></>
+                  )}
+                  <Button type='button' className='btn-primary mx-1 my-1 shadow-smc' onClick={(e) => {
+                    e.preventDefault();
+                    handleView(item.$id);
+                  }}>Megtekintés</Button>
+                  {user.prefs.perms.includes('hr.edit_user_current_state') ?
+                    <Button type='button' className='btn-danger my-1 me-0 mx-1 shadow-smc' onClick={(e) => {
+                      e.preventDefault();
+                      if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
+                        handleDelete(item.$id);
+                      }
+                    }}>Törlés</Button> : ""}
+                  {/* Development Function */}
+                  {/* <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {
+                    e.preventDefault();
+                    async function copyToClipboard(text) {
+                      if ('clipboard' in navigator) {
+                        return await navigator.clipboard.writeText(text);
+                      } else {
+                        return document.execCommand('copy', true, text);
+                      }
+                    }
+                    copyToClipboard(item.$id);
+                  }}></Button> */}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </>
   )
 }
