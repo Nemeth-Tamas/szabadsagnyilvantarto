@@ -842,7 +842,7 @@ const UsersList = () => {
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
+      <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} >
         <BetterErrorToast error={error} setError={setError} errorText={errorCode} />
         <SuccessToast success={success} setSuccess={setSuccess} title="Létrehozva" text={`Felhasználó sikeresen létrehozva.`} />
       </ToastContainer>

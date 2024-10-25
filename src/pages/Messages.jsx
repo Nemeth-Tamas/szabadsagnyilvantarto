@@ -84,7 +84,7 @@ const Messages = () => {
 
   return (
     <>
-      <ToastContainer className='p-3' position='bottom-end' style={{ zIndex: 9999 }} >
+      <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} >
         <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.ServerErrorFailedToLoadMessages} />
       </ToastContainer>
 
