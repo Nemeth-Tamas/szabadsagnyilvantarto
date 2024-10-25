@@ -22,7 +22,7 @@ const UserEdit = () => {
   const [loadingRole, setLoadingRole] = useState(false);
   const [loadingRemainingDays, setLoadingRemainingDays] = useState(false);
   const [loadingMaxDays, setLoadingMaxDays] = useState(false);
-  const [coadingEmail, setLoadingEmail] = useState(false);
+  const [loadingEmail, setLoadingEmail] = useState(false);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
