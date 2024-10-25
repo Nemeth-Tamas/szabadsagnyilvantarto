@@ -62,51 +62,25 @@ const UserEdit = () => {
       navigate('/');
     }
 
-    axios.request({
-      method: 'GET',
-      url: `${url}/users/${userID}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERBYID, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID
+    })).then((response) => {
+      
+      let data = JSON.parse(response.responseBody);
+      if (data.status == 'fail') setError(true);
       if (devmode)
-        console.log(response);
+        console.log(data);
 
-      setName(response.data.user.name);
-      setUsername(response.data.user.email);
-      setManager(response.data.user.prefs.manager);
-      setPerms(response.data.user.prefs.perms);
-      setRole(response.data.user.prefs.role);
-      setRemainingDays(response.data.user.prefs.remainingdays);
-      setMaxDays(response.data.user.prefs.maxdays);
-      setSick(response.data.user.prefs.sick);
+      setName(data.user.name);
+      setUsername(data.user.email);
+      setManager(data.user.prefs.manager);
+      setPerms(data.user.prefs.perms);
+      setRole(data.user.prefs.role);
+      setRemainingDays(data.user.prefs.remainingdays);
+      setMaxDays(data.user.prefs.maxdays);
+      setSick(data.user.prefs.sick);
 
-      // axios.request({
-      //   method: 'GET',
-      //   url: `${url}/tappenz/${userID}`,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'submittingId': user.$id
-      //   }
-      // }).then((response2) => {
-      //   if (response.status != 200) setError(true);
-      //   if (response.data.status == 'fail') setError(true);
-
-      //   let data = response2.data.tappenz
-      //   let tableData = [];
-      //   data.forEach((item) => {
-      //     tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
-      //   })
-      //   setSickTableData(tableData);
-
-      //   setLoading(false);
-      // }).catch((error) => {
-      //   console.log(error);
-      //   setError(true);
-      // });
       functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETTAPPENZ, JSON.stringify({
         submittingId: user.$id,
         userId: userID
@@ -131,6 +105,57 @@ const UserEdit = () => {
       console.log(error);
       setError(true);
     });
+
+    // axios.request({
+    //   method: 'GET',
+    //   url: `${url}/users/${userID}`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
+
+    //   setName(response.data.user.name);
+    //   setUsername(response.data.user.email);
+    //   setManager(response.data.user.prefs.manager);
+    //   setPerms(response.data.user.prefs.perms);
+    //   setRole(response.data.user.prefs.role);
+    //   setRemainingDays(response.data.user.prefs.remainingdays);
+    //   setMaxDays(response.data.user.prefs.maxdays);
+    //   setSick(response.data.user.prefs.sick);
+
+    //   // axios.request({
+    //   //   method: 'GET',
+    //   //   url: `${url}/tappenz/${userID}`,
+    //   //   headers: {
+    //   //     'Content-Type': 'application/json',
+    //   //     'submittingId': user.$id
+    //   //   }
+    //   // }).then((response2) => {
+    //   //   if (response.status != 200) setError(true);
+    //   //   if (response.data.status == 'fail') setError(true);
+
+    //   //   let data = response2.data.tappenz
+    //   //   let tableData = [];
+    //   //   data.forEach((item) => {
+    //   //     tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
+    //   //   })
+    //   //   setSickTableData(tableData);
+
+    //   //   setLoading(false);
+    //   // }).catch((error) => {
+    //   //   console.log(error);
+    //   //   setError(true);
+    //   // });
+      
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
   }, []);
 
   const updateName = (e) => {
