@@ -20,6 +20,7 @@ const UsersList = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingDownload, setLoadingDownload] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
@@ -70,26 +71,38 @@ const UsersList = () => {
 
   const handleUpdate = () => {
     setErrorCode(ErrorCodes.FailedToLoadUsers);
-    axios.request({
-      method: 'GET',
-      url: `${url}/users`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    })
-      .then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log("Total users recv: ", response.data.usersList.users.length);
-        console.log("Total users expected: ", response.data.usersList.total);
-        console.log(response);
-        setData(response.data.usersList.users);
-      })
-      .catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+    // axios.request({
+    //   method: 'GET',
+    //   url: `${url}/users`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // })
+    //   .then((response) => {
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     console.log("Total users recv: ", response.data.usersList.users.length);
+    //     console.log("Total users expected: ", response.data.usersList.total);
+    //     console.log(response);
+    //     setData(response.data.usersList.users);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERS, JSON.stringify({
+      submittingId: user.$id
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setData(data.usersList.users);
+      setLoadingUsers(false);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   };
   // TODO: Everywhere change setError to return
   const handleView = (id, name) => {
@@ -767,6 +780,7 @@ const UsersList = () => {
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
+          setLoadingUsers(true);
           handleUpdate();
         }}>Frissítés</Button>
         {user?.prefs?.perms?.includes('jegyzo.create_user') && (
@@ -792,82 +806,91 @@ const UsersList = () => {
           }}>Szabadság tervek törlése</Button>
         )}
       </div>
-      <Table className={theme == "dark" ? 'table-dark mt-2 shadow-dark' : 'mt-2 shadow-light'}>
-        <thead>
-          <tr>
-            <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
-            <th style={{ maxWidth: "30%", width: "30%" }}>Név</th>
-            <th style={{ maxWidth: "30%", width: "30%" }}>Felhasználónév</th>
-            <th style={{ maxWidth: "36%", width: "36%" }}>Műveletek</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((u, index) => (
-            <tr key={u.$id + index} className={`${u.prefs.sick 
-                                                ? 'table-danger' 
-                                                : u.prefs.onLeave 
-                                                ? 'table-warning' 
-                                                : (u.prefs.manager == user.$id && user.prefs.perms.includes("jegyzo.list_all")) 
-                                                ? 'table-secondary' 
-                                                : ''}`}>
-              <td>{index + 1}</td>
-              <td>{u.name}</td>
-              <td>{u.email}</td>
-              <td>
-                <Button type='button' className='btn-primary my-1 mx-1 shadow-smc' onClick={(e) => {
-                  e.preventDefault();
-                  setLoading(true);
-                  handleView(u.$id, u.name);
-                }}>
-                  Naptár
-                </Button>
-                {user?.prefs?.perms?.includes('irodavezeto.message_send') && (
-                  <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
-                    e.preventDefault();
-                    sendMessage(u.$id);
-                  }}>Üzenet küzdés</Button>
-                )}
-                {user?.prefs?.perms?.includes('jegyzo.edit_user') && (
-                  <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
-                    e.preventDefault();
-                    editUser(u.$id);
-                  }}>Szerkesztés</Button>
-                )}
-                {(user?.prefs?.perms?.includes('hr.edit_user_current_state') || user?.prefs?.perms?.includes('jegyzo.delete_user')) && (
-                  <ButtonGroup aria-label='törlés' className='my-1 mx-1 shadow-smc'>
-                    <a href='#' role='button' className='btn btn-danger btn-xs' id='label-btn' aria-disabled='true'>Törlés</a>
-                    {user?.prefs?.perms?.includes('hr.edit_user_current_state') && (
-                      <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
-                        e.preventDefault();
-                        if (window.confirm("A törléssel a teljes éves szabadság terv törlésre kerül a felhasználó számára!\nBiztos szeretné a felhasználó szabadság tervét törölni?")) deletePlan(u.$id);
-                      }}>Terv</Button>
-                    )}
-                    {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
-                      <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
-                        e.preventDefault();
-                        if (window.confirm("Biztos szeretné a felhasználót törölni?")) deleteUser(u.$id);
-                      }}>Felhasználó</Button>
-                    )}
-                  </ButtonGroup>
-                )}
-                {/* {user?.prefs?.perms?.includes('hr.edit_user_perms') && (
-                  <Button type='button' className='btn-info my-1 mx-1 shadow-smc' onClick={(e) => {
-                    e.preventDefault();
-                    async function copyToClipboard(text) {
-                      if ('clipboard' in navigator) {
-                        return await navigator.clipboard.writeText(text);
-                      } else {
-                        return document.execCommand('copy', true, text);
-                      }
-                    }
-                    copyToClipboard(u.$id);
-                  }}></Button>
-                )} */}
-              </td>
+      {loadingUsers && (
+        <div className='d-flex justify-content-center'>
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
+      { !loadingUsers && (
+        <Table className={theme == "dark" ? 'table-dark mt-2 shadow-dark' : 'mt-2 shadow-light'}>
+          <thead>
+            <tr>
+              <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
+              <th style={{ maxWidth: "30%", width: "30%" }}>Név</th>
+              <th style={{ maxWidth: "30%", width: "30%" }}>Felhasználónév</th>
+              <th style={{ maxWidth: "36%", width: "36%" }}>Műveletek</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {data.map((u, index) => (
+              <tr key={u.$id + index} className={`${u.prefs.sick 
+                                                  ? 'table-danger' 
+                                                  : u.prefs.onLeave 
+                                                  ? 'table-warning' 
+                                                  : (u.prefs.manager == user.$id && user.prefs.perms.includes("jegyzo.list_all")) 
+                                                  ? 'table-secondary' 
+                                                  : ''}`}>
+                <td>{index + 1}</td>
+                <td>{u.name}</td>
+                <td>{u.email}</td>
+                <td>
+                  <Button type='button' className='btn-primary my-1 mx-1 shadow-smc' onClick={(e) => {
+                    e.preventDefault();
+                    setLoading(true);
+                    handleView(u.$id, u.name);
+                  }}>
+                    Naptár
+                  </Button>
+                  {user?.prefs?.perms?.includes('irodavezeto.message_send') && (
+                    <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
+                      e.preventDefault();
+                      sendMessage(u.$id);
+                    }}>Üzenet küzdés</Button>
+                  )}
+                  {user?.prefs?.perms?.includes('jegyzo.edit_user') && (
+                    <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
+                      e.preventDefault();
+                      editUser(u.$id);
+                    }}>Szerkesztés</Button>
+                  )}
+                  {(user?.prefs?.perms?.includes('hr.edit_user_current_state') || user?.prefs?.perms?.includes('jegyzo.delete_user')) && (
+                    <ButtonGroup aria-label='törlés' className='my-1 mx-1 shadow-smc'>
+                      <a href='#' role='button' className='btn btn-danger btn-xs' id='label-btn' aria-disabled='true'>Törlés</a>
+                      {user?.prefs?.perms?.includes('hr.edit_user_current_state') && (
+                        <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
+                          e.preventDefault();
+                          if (window.confirm("A törléssel a teljes éves szabadság terv törlésre kerül a felhasználó számára!\nBiztos szeretné a felhasználó szabadság tervét törölni?")) deletePlan(u.$id);
+                        }}>Terv</Button>
+                      )}
+                      {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
+                        <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
+                          e.preventDefault();
+                          if (window.confirm("Biztos szeretné a felhasználót törölni?")) deleteUser(u.$id);
+                        }}>Felhasználó</Button>
+                      )}
+                    </ButtonGroup>
+                  )}
+                  {/* {user?.prefs?.perms?.includes('hr.edit_user_perms') && (
+                    <Button type='button' className='btn-info my-1 mx-1 shadow-smc' onClick={(e) => {
+                      e.preventDefault();
+                      async function copyToClipboard(text) {
+                        if ('clipboard' in navigator) {
+                          return await navigator.clipboard.writeText(text);
+                        } else {
+                          return document.execCommand('copy', true, text);
+                        }
+                      }
+                      copyToClipboard(u.$id);
+                    }}></Button>
+                  )} */}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </>
   )
 }

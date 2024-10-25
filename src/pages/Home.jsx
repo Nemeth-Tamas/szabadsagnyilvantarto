@@ -18,6 +18,7 @@ const Home = () => {
   const [errorCode, setErrorCode] = useState(ErrorCodes.RequestNotSent);
   const [loading, setLoading] = useState(true);
   const [loadingSendButton, setLoadingSendButton] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
@@ -41,24 +42,37 @@ const Home = () => {
 
   const handleUpdate = () => {
     setErrorCode(ErrorCodes.FailedToLoadUsers);
-    axios.request({
-      method: 'GET',
-      url: `${url}/users`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    })
-      .then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log(response);
-        setData(response.data.usersList.users);
-      })
-      .catch((error) => {
-        console.log(error);
-        setError(true);
-      });
+    // axios.request({
+    //   method: 'GET',
+    //   url: `${url}/users`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // })
+    //   .then((response) => {
+    //     if (response.status != 200) setError(true);
+    //     if (response.data.status == 'fail') setError(true);
+    //     console.log(response);
+    //     setData(response.data.usersList.users);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     setError(true);
+    //   });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERS, JSON.stringify({
+      submittingId: user.$id
+    })).then((response) => {
+      console.log("MIGHT CONFLICT: ", response);
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setData(data.usersList.users);
+      setLoadingUsers(false);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   };
 
   useEffect(() => {
@@ -132,6 +146,7 @@ const Home = () => {
       type: selectedType,
       dates: selectedDates
     })).then((response) => {
+      console.log("MIGHT CONFLICT: ", response);
       let data = JSON.parse(response.responseBody);
       console.log(data);
       if (data.status == 'fail') setError(true);
@@ -196,6 +211,7 @@ const Home = () => {
       submittingId: submittingId,
       userId: submittingId
     })).then((response) => {
+      console.log("MIGHT CONFLICT: ", response);
       let data = JSON.parse(response.responseBody);
       console.log(data);
       if (data.status == 'fail') setError(true);
@@ -258,6 +274,7 @@ const Home = () => {
       submittingId: user.$id
     }))
     .then((response) => {
+      console.log("MIGHT CONFLICT: ", response);
       let data = JSON.parse(response.responseBody);
       console.log(data);
       if (data.status == 'fail') setError(true);
@@ -320,6 +337,7 @@ const Home = () => {
       userId: user.$id
     }))
     .then((response) => {
+      console.log("MIGHT CONFLICT: ", response);
       let data = JSON.parse(response.responseBody);
       console.log(data);
       if (data.status == 'fail') setError(true);
@@ -477,7 +495,12 @@ const Home = () => {
               <Card.Body>
                 <Card.Title><h1 className='display-6 text-center'>Szabadság kérelem küldése</h1></Card.Title>
                 <CustomCalendar selectedDates={selectedDates} setSelectedDates={setSelectedDates} />
-                { (data != [] && user?.prefs?.perms?.includes("hr.edit_user_current_state")) &&
+                {(loadingUsers && user?.prefs?.perms?.includes("hr.edit_user_current_state")) && (
+                  <FormSelect className='mt-3'>
+                    <option>Betöltés...</option>
+                  </FormSelect>
+                )}
+                { (data != [] && user?.prefs?.perms?.includes("hr.edit_user_current_state") && !loadingUsers) &&
                   // <p>{JSON.stringify(data)}</p>
                   <FormSelect value={submittingId} onChange={handleOnUserSelect} className='mt-3'>
                     <option value={user?.$id}>Saját</option>
