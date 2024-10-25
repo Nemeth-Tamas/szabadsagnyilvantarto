@@ -16,6 +16,13 @@ const UserEdit = () => {
   const [loading, setLoading] = useState(true);
   const [loadingButton, setLoadingButton] = useState(false);
   const [loadingButton2, setLoadingButton2] = useState(false);
+  const [loadingName, setLoadingName] = useState(false);
+  const [loadingManager, setLoadingManager] = useState(false);
+  const [loadingPerms, setLoadingPerms] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(false);
+  const [loadingRemainingDays, setLoadingRemainingDays] = useState(false);
+  const [loadingMaxDays, setLoadingMaxDays] = useState(false);
+  const [coadingEmail, setLoadingEmail] = useState(false);
   const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -66,7 +73,7 @@ const UserEdit = () => {
       submittingId: user.$id,
       userId: userID
     })).then((response) => {
-      
+
       let data = JSON.parse(response.responseBody);
       if (data.status == 'fail') setError(true);
       if (devmode)
@@ -161,22 +168,37 @@ const UserEdit = () => {
   const updateName = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/name`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        name: name
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/name`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     name: name
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERENAME, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      newUserName: name
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingName(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -186,22 +208,38 @@ const UserEdit = () => {
   const updateManager = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/manager`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        manager: manager
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/manager`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     manager: manager
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      manager: manager
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingManager(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -211,22 +249,37 @@ const UserEdit = () => {
   const updatePerms = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/perms`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        perms: perms
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/perms`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     perms: perms
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      perms: perms
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingPerms(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -236,22 +289,37 @@ const UserEdit = () => {
   const updateRole = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/role`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        role: role
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/role`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     role: role
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      role: role
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingRole(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -261,22 +329,37 @@ const UserEdit = () => {
   const updateRemainingDays = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/remainingdays`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        remainingdays: remainingDays
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/remainingdays`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     remainingdays: remainingDays
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      remainingdays: remainingDays
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingRemainingDays(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -286,22 +369,37 @@ const UserEdit = () => {
   const updateMaxDays = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/maxdays`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        maxdays: maxDays
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/maxdays`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     maxdays: maxDays
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      maxdays: maxDays
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingMaxDays(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -312,22 +410,38 @@ const UserEdit = () => {
   const updateUsername = (e) => {
     e.preventDefault();
 
-    axios.request({
-      method: 'PATCH',
-      url: `${url}/users/${userID}/email`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      },
-      data: {
-        email: username
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      if (devmode)
-        console.log(response);
+    // axios.request({
+    //   method: 'PATCH',
+    //   url: `${url}/users/${userID}/email`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   },
+    //   data: {
+    //     email: username
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   if (devmode)
+    //     console.log(response);
 
+    //   setSuccess(true);
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSEREMAIL, JSON.stringify({
+      submittingId: user.$id,
+      userId: userID,
+      newUserEmail: username
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      if (devmode)
+        console.log(data);
+      if (data.status == 'fail') setError(true);
+      setLoadingEmail(false);
       setSuccess(true);
     }).catch((error) => {
       console.log(error);
@@ -580,21 +694,64 @@ const UserEdit = () => {
                   <Form.Label>Név</Form.Label>
                   <div style={{ display: 'flex' }}>
                     <Form.Control type="text" placeholder="Név" value={name} onChange={(e) => setName(e.target.value)} />
-                    <Button variant="success" onClick={updateName} className='ms-1'>Mentés</Button>
+                    <Button variant="success" onClick={(e) => {
+                      e.preventDefault();
+                      setLoadingName(true);
+                      updateName(e);
+                    }} className='ms-1'>
+                      {loadingName && (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Mentés
+                    </Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Email cím</Form.Label>
                   <div style={{ display: 'flex' }}>
                     <Form.Control type="email" placeholder="Felhasználónév" value={username} onChange={(e) => setUsername(e.target.value)} />
-                    <Button variant="success" onClick={updateUsername} className='ms-1'>Mentés</Button>
+                    <Button variant="success" onClick={(e) => {
+                      e.preventDefault();
+                      setLoadingEmail(true);
+                      updateUsername(e);
+                    }} className='ms-1'>
+                      {loadingEmail && (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Manager</Form.Label>
                   <div style={{ display: 'flex' }}>
                     <Form.Control type="text" placeholder="Felettes azonosítója" value={manager} onChange={(e) => setManager(e.target.value)} />
-                    <Button variant="success" onClick={updateManager} className='ms-1'>Mentés</Button>
+                    <Button variant="success" onClick={(e) => {
+                      e.preventDefault();
+                      setLoadingManager(true);
+                      updateManager(e);
+                    }} className='ms-1'>
+                      {loadingManager && (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Mentés</Button>
                   </div>
                 </Form.Group>
                 {/* <Form.Group className="mb-3">
@@ -620,21 +777,63 @@ const UserEdit = () => {
                         <option key={index} value={role}>{role}</option>
                       ))}
                     </Form.Select>
-                    <Button variant="success" onClick={updateRole} className='ms-1'>Mentés</Button>
+                    <Button variant="success" onClick={(e) => {
+                      e.preventDefault();
+                      setLoadingRole(true);
+                      updateRole(e);
+                    }} className='ms-1'>
+                      {loadingRole && (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Hátralévő napok</Form.Label>
                   <div style={{ display: 'flex' }}>
                     <Form.Control type="number" placeholder="Hátralévő napok" value={remainingDays} onChange={(e) => setRemainingDays(e.target.value)} />
-                    <Button variant="success" onClick={updateRemainingDays} className='ms-1'>Mentés</Button>
+                    <Button variant="success" onClick={(e) => {
+                      e.preventDefault();
+                      setLoadingRemainingDays(true);
+                      updateRemainingDays(e);
+                    }} className='ms-1'>
+                      {loadingRemainingDays && (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Mentés</Button>
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3">
                   <Form.Label>Maximális napok</Form.Label>
                   <div style={{ display: 'flex' }}>
                     <Form.Control type="number" placeholder="Maximális napok" value={maxDays} onChange={(e) => setMaxDays(e.target.value)} />
-                    <Button variant="success" onClick={updateMaxDays} className='ms-1'>Mentés</Button>
+                    <Button variant="success" onClick={(e) => {
+                      e.preventDefault();
+                      setLoadingMaxDays(true);
+                      updateMaxDays(e);
+                    }} className='ms-1'>
+                      {loadingMaxDays && (
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      )}
+                      Mentés</Button>
                   </div>
                 </Form.Group>
               </Form>
