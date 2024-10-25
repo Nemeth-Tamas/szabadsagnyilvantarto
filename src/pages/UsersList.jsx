@@ -343,27 +343,48 @@ const UsersList = () => {
 
       postUserDaysLeft = postUserMaxdays;
 
-      axios.request({
-        method: 'POST',
-        url: `${url}/users/register`,
-        headers: {
-          'Content-Type': 'application/json',
-          'submittingId': user.$id
-        },
-        data: {
-          email: postUserEmail,
-          password: postUserPassword,
-          name: postUserUsername,
-          role: postUserRole,
-          manager: postUserManager,
-          perms: postUserPerms,
-          maxdays: postUserMaxdays,
-          remainingdays: postUserDaysLeft
-        }
-      }).then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log(response);
+      // axios.request({
+      //   method: 'POST',
+      //   url: `${url}/users/register`,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'submittingId': user.$id
+      //   },
+      //   data: {
+      //     email: postUserEmail,
+      //     password: postUserPassword,
+      //     name: postUserUsername,
+      //     role: postUserRole,
+      //     manager: postUserManager,
+      //     perms: postUserPerms,
+      //     maxdays: postUserMaxdays,
+      //     remainingdays: postUserDaysLeft
+      //   }
+      // }).then((response) => {
+      //   if (response.status != 200) setError(true);
+      //   if (response.data.status == 'fail') setError(true);
+      //   console.log(response);
+      //   handleUpdate();
+      //   setSuccess(true);
+      // }).catch((error) => {
+      //   console.log(error);
+      //   setError(true);
+      // });
+      setLoadingUsers(true);
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_CREATEUSER, JSON.stringify({
+        submittingId: user.$id,
+        email: postUserEmail,
+        password: postUserPassword,
+        name: postUserUsername,
+        role: postUserRole,
+        manager: postUserManager,
+        perms: postUserPerms,
+        maxdays: postUserMaxdays,
+        remainingdays: postUserDaysLeft
+      })).then((response) => {
+        let data = JSON.parse(response.responseBody);
+        console.log(data);
+        if (data.status == 'fail') setError(true);
         handleUpdate();
         setSuccess(true);
       }).catch((error) => {
@@ -467,29 +488,51 @@ const UsersList = () => {
       if (userDaysLeft == -1) postUserDaysLeft = postUserMaxdays;
 
       setErrorCode(ErrorCodes.FailedToRegisterUser);
-      axios.request({
-        method: 'POST',
-        url: `${url}/users/register`,
-        headers: {
-          'Content-Type': 'application/json',
-          'submittingId': user.$id
-        },
-        data: {
-          email: postUserEmail,
-          password: postUserPassword,
-          name: postUserUsername,
-          role: postUserRole,
-          manager: postUserManager,
-          perms: postUserPerms,
-          maxdays: postUserMaxdays,
-          remainingdays: postUserDaysLeft
-        }
-      }).then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log(response);
-        handleUpdate();
+      // axios.request({
+      //   method: 'POST',
+      //   url: `${url}/users/register`,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'submittingId': user.$id
+      //   },
+      //   data: {
+      //     email: postUserEmail,
+      //     password: postUserPassword,
+      //     name: postUserUsername,
+      //     role: postUserRole,
+      //     manager: postUserManager,
+      //     perms: postUserPerms,
+      //     maxdays: postUserMaxdays,
+      //     remainingdays: postUserDaysLeft
+      //   }
+      // }).then((response) => {
+      //   if (response.status != 200) setError(true);
+      //   if (response.data.status == 'fail') setError(true);
+      //   console.log(response);
+      //   handleUpdate();
+      //   handleCreateUserClose();
+      //   setSuccess(true);
+      // }).catch((error) => {
+      //   console.log(error);
+      //   setError(true);
+      // });
+      setLoadingUsers(true);
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_CREATEUSER, JSON.stringify({
+        submittingId: user.$id,
+        email: postUserEmail,
+        password: postUserPassword,
+        name: postUserUsername,
+        role: postUserRole,
+        manager: postUserManager,
+        perms: postUserPerms,
+        maxdays: postUserMaxdays,
+        remainingdays: postUserDaysLeft
+      })).then((response) => {
+        let data = JSON.parse(response.responseBody);
+        console.log(data);
+        if (data.status == 'fail') setError(true);
         handleCreateUserClose();
+        handleUpdate();
         setSuccess(true);
       }).catch((error) => {
         console.log(error);
