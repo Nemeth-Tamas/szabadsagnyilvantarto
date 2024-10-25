@@ -180,38 +180,15 @@ const UsersList = () => {
 
       // get user max and left days
       setErrorCode(ErrorCodes.FailedToLoadUser);
-      axios.request({
-        method: 'GET',
-        url: `${url}/users/${id}`,
-        headers: {
-          'Content-Type': 'application/json',
-          'submittingId': user.$id
-        }
-      }).then((response) => {
-        if (response.status != 200) setError(true);
-        if (response.data.status == 'fail') setError(true);
-        console.log(response);
-        setUserCalendarStats(response.data.user.prefs);
-        // get sick days
-        // const options = {
-        //   method: 'GET',
-        //   url: `${url}/tappenz/${id}/cumulative`,
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'submittingId': user.$id
-        //   }
-        // }
-
-        // axios.request(options).then((response) => {
-        //   if (response.status != 200) { setError(true); return; }
-        //   if (response.data.status == 'fail') { setError(true); return; }
-
-        //   setTappenz(response.data.cumulative);
-        //   setShowCalendar(true);
-        // }).catch((error) => { 
-        //   console.log(error);
-        //   setError(true);
-        // });
+      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERBYID, JSON.stringify({
+        submittingId: user.$id,
+        userId: id
+      })).then((response) => {
+        let data = JSON.parse(response.responseBody);
+        console.log(data);
+        if (data.status == 'fail') setError(true);
+        setUserCalendarStats(data.user.prefs);
+        
         functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_CUMULATIVE, JSON.stringify({
           submittingId: user.$id,
           userId: id
@@ -233,22 +210,72 @@ const UsersList = () => {
         setErrorCode(ErrorCodes.FailedToLoadUser);
         setError(true);
       });
+      // axios.request({
+      //   method: 'GET',
+      //   url: `${url}/users/${id}`,
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'submittingId': user.$id
+      //   }
+      // }).then((response) => {
+      //   if (response.status != 200) setError(true);
+      //   if (response.data.status == 'fail') setError(true);
+      //   console.log(response);
+      //   setUserCalendarStats(response.data.user.prefs);
+      //   // get sick days
+      //   // const options = {
+      //   //   method: 'GET',
+      //   //   url: `${url}/tappenz/${id}/cumulative`,
+      //   //   headers: {
+      //   //     'Content-Type': 'application/json',
+      //   //     'submittingId': user.$id
+      //   //   }
+      //   // }
+
+      //   // axios.request(options).then((response) => {
+      //   //   if (response.status != 200) { setError(true); return; }
+      //   //   if (response.data.status == 'fail') { setError(true); return; }
+
+      //   //   setTappenz(response.data.cumulative);
+      //   //   setShowCalendar(true);
+      //   // }).catch((error) => { 
+      //   //   console.log(error);
+      //   //   setError(true);
+      //   // });
+        
+      // }).catch((error) => {
+      //   console.log(error);
+      //   setErrorCode(ErrorCodes.FailedToLoadUser);
+      //   setError(true);
+      // });
     })
   };
 
   const deleteUser = (id) => {
     setErrorCode(ErrorCodes.ErrorWhileDeletingUser);
-    axios.request({
-      method: 'DELETE',
-      url: `${url}/users/${id}`,
-      headers: {
-        'Content-Type': 'application/json',
-        'submittingId': user.$id
-      }
-    }).then((response) => {
-      if (response.status != 200) setError(true);
-      if (response.data.status == 'fail') setError(true);
-      console.log(response);
+    // axios.request({
+    //   method: 'DELETE',
+    //   url: `${url}/users/${id}`,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'submittingId': user.$id
+    //   }
+    // }).then((response) => {
+    //   if (response.status != 200) setError(true);
+    //   if (response.data.status == 'fail') setError(true);
+    //   console.log(response);
+    //   handleUpdate();
+    // }).catch((error) => {
+    //   console.log(error);
+    //   setError(true);
+    // });
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETEUSER, JSON.stringify({
+      submittingId: user.$id,
+      userId: id
+    })).then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
       handleUpdate();
     }).catch((error) => {
       console.log(error);
@@ -910,6 +937,7 @@ const UsersList = () => {
                       {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
                         <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
                           e.preventDefault();
+                          setLoadingUsers(true);
                           if (window.confirm("Biztos szeretné a felhasználót törölni?")) deleteUser(u.$id);
                         }}>Felhasználó</Button>
                       )}
