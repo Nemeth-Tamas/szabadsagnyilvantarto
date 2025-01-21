@@ -6,13 +6,43 @@ import { logout } from '../appwrite';
 import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser, selectUser } from '../store/userSlice';
+import { functions } from '../appwrite';
+
 
 const MainNavbar = () => {
   const {theme, changeTheme} = useContext(ThemeContext);
   const [themeButton, setThemeButton] = useState("Világos");
+  const [kerelmekCount, setKerelmekCount] = useState(0);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    handleUpdate();
+  }, []);
+
+  const handleUpdate = () => {
+    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
+      submittingId: user.$id
+    }))
+    .then((response) => {
+      let data = JSON.parse(response.responseBody);
+      console.log(data);
+      if (data.status == 'fail') setError(true);
+      setKerelmekCount(data.kerelmek.count);
+      setErrorCounter(0);
+      setLoading(false);
+    })
+    .catch((error) => {
+      if (errorCounter < 3) {
+        handleUpdate();
+        setErrorCounter(errorCounter + 1);
+      } else {
+        console.log(error);
+        setError(true);
+      }
+    });
+  };
 
   const switchTheme = () => {
     if (theme == "light") {
@@ -70,7 +100,7 @@ const MainNavbar = () => {
               ) : (<></>)}
               {user?.prefs?.perms.includes("irodavezeto.approve") ? (
                 <LinkContainer to="/requests">
-                  <Nav.Link>Kérelmek</Nav.Link>
+                  <Nav.Link>Kérelmek {kerelmekCount != 0 ? `(${kerelmekCount})` : ""}</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
               {user?.prefs?.perms.includes("irodavezeto.list_own") || user?.prefs?.perms.includes("jegyzo.list_all") ? (
