@@ -13,7 +13,6 @@ const MainNavbar = () => {
   const {theme, changeTheme} = useContext(ThemeContext);
   const [themeButton, setThemeButton] = useState("Világos");
   const [kerelmekCount, setKerelmekCount] = useState(0);
-  const [errorCounter, setErrorCounter] = useState(0);
   const [loading, setLoading] = useState(true);
   const user = useSelector(selectUser);
   const navigate = useNavigate();
