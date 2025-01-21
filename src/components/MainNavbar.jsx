@@ -31,17 +31,10 @@ const MainNavbar = () => {
       let data = JSON.parse(response.responseBody);
       console.log(data);
       setKerelmekCount(data.kerelmek.total);
-      setErrorCounter(0);
       setLoading(false);
     })
     .catch((error) => {
-      if (errorCounter < 3) {
-        handleUpdate();
-        setErrorCounter(errorCounter + 1);
-      } else {
-        console.log(error);
-        setError(true);
-      }
+      console.log(error);
     });
   };
 
