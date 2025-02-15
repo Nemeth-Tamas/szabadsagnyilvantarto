@@ -6,7 +6,6 @@ import axios from 'axios';
 import { Button, Table, ToastContainer } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes, LoadingCircle } from '../components';
 import { useNavigate } from 'react-router';
-import { functions } from '../appwrite';
 
 const Messages = () => {
   const { theme } = useContext(ThemeContext);

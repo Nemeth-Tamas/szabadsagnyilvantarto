@@ -7,7 +7,6 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
-import { functions } from '../appwrite';
 
 const MonthCard = ({ month, theme, selectedDates, setSelectedDates }) => {
   let monthStr = "";

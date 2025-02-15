@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Alert, Button, Card, Container, Form } from 'react-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { getUserData, login } from "../appwrite";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, setUser } from '../store/userSlice';
+import axios from 'axios';
+import jwt from 'jsonwebtoken';
 
 const LoginComponent = () => {
   const {theme} = useContext(ThemeContext);
@@ -14,7 +15,6 @@ const LoginComponent = () => {
   const user = useSelector(selectUser);
 
   useEffect(() => {
-    console.log("LOGIN:",user);
     if (user && user.$id) {
       navigate('/');
     }
@@ -29,21 +29,18 @@ const LoginComponent = () => {
   }
 
   const handleLogin = (username, password) => {
-    login(username, password)
-    .then(account => {
-      getUserData()
-      .then(acc => {
-        dispatch(setUser(acc));
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    axios.post(import.meta.env.VITE_BACKEND_BASEADDRESS + '/login', {
+      'email': username, 'password': password
+    }).then((response) => {
+      console.log(response.data);
+      let token = response.data.token;
+      let user = jwt.decode(token);
+      dispatch(setUser({user: user, token: token}));
       navigate('/');
-    })
-    .catch(error => {
+    }).catch((error) => {
       console.log(error);
       setLoginError(true);
-    })
+    });
   }
 
   return (

@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../store/userSlice';
 import axios from 'axios';
 import { Container } from 'react-bootstrap';
-import { functions } from '../appwrite';
 
 const ModalCalendar = ({ id, userData = null, userStats = null, tappenz = null }) => {
   const user = useSelector(selectUser);

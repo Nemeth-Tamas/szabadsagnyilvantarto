@@ -7,7 +7,6 @@ import axios from 'axios';
 import { Button, ButtonGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast, LoadingCircle } from '../components';
 import bcrypt from 'bcryptjs';
-import { functions, storage } from '../appwrite';
 
 const UsersList = () => {
   const { theme } = useContext(ThemeContext);

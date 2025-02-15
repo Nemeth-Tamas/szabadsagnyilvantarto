@@ -2,11 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Button, Container, Form, Nav, Navbar } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { logout } from '../appwrite';
 import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser, selectUser } from '../store/userSlice';
-import { functions } from '../appwrite';
 
 
 const MainNavbar = () => {

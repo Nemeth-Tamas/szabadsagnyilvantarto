@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, Modal, Spinner, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
-import { functions } from '../appwrite';
 
 const Requests = () => {
   const { theme } = useContext(ThemeContext);

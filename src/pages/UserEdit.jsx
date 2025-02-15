@@ -6,7 +6,6 @@ import { useLocation, useNavigate, useParams } from 'react-router';
 import { Button, Card, Form, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import axios from 'axios';
 import { BetterErrorToast, ErrorCodes, SuccessToast } from '../components';
-import { functions } from '../appwrite';
 
 const UserEdit = () => {
   const { theme } = useContext(ThemeContext);
