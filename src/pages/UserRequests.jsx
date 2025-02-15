@@ -2,23 +2,21 @@ import React, { useContext, useEffect, useState } from 'react'
 import { Button, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../store/userSlice';
-import axios from 'axios';
+import { selectToken, selectUser } from '../store/userSlice';
 import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
 import { useNavigate } from 'react-router';
+import api from '../api';
 
 const UserRequests = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const [data, setData] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [error, setError] = useState(false);
-  const [errorCounter, setErrorCounter] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [loadingButton, setLoadingButton] = useState(false);
+  const [error, setError] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarId, setCalendarId] = useState(null);
-  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const navigate = useNavigate();
 
   const handleCalendarClose = () => { setShowCalendar(false); setCalendarId(null); }
@@ -26,12 +24,8 @@ const UserRequests = () => {
   useEffect(() => {
     // check if user has felhasznalo.delete_request permission
     // if not, return to /
-    if (!user?.prefs?.perms?.includes('felhasznalo.delete_request')) {
-      navigate('/');
-    }
-    if (!user || !user.$id) {
+    if (!token) {
       navigate('/login');
-      return;
     }
     handleUpdate();
   }, []);
@@ -39,37 +33,19 @@ const UserRequests = () => {
   const handleDelete = (id) => {
     console.log(id);
 
-    // const options = {
-    //   method: 'DELETE',
-    //   url: `${url}/kerelmek/${id}`,
-    //   headers: {
-    //     'submittingId': user.$id
-    //   }
-    // }
+    const options = {
+      method: 'DELETE',
+      url: `/requests/${id}`,
+    };
 
-    // console.log(options);
-
-    // axios.request(options)
-    //   .then((response) => {
-    //     console.log(response);
-    //     handleUpdate();
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
-    setLoading(true);
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETE_KERELMEK, JSON.stringify({
-      submittingId: user.$id,
-      kerelmId: id
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-
-      handleUpdate();
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    api.request(options)
+      .then((response) => {
+        console.log(response);
+        handleUpdate();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const handleView = (id) => {
@@ -79,81 +55,59 @@ const UserRequests = () => {
   };
 
   const loadMore = () => {
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/kerelmek/own?offset=${data.length}`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // })
-    //   .then((response) => {
-    //     if (response.status != 200) setError(true);
-    //     if (response.data.status == 'fail') setError(true);
-    //     console.log(response);
-    //     setData(prevData => [...prevData, ...response.data.kerelmek.documents]);
-    //     setTotal(response.data.kerelmek.total);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     setError(true);
-    //   });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK_OWN, JSON.stringify({
-      submittingId: user.$id,
-      offset: data.length
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setData(prevData => [...prevData, ...data.kerelmek.documents]);
-      setTotal(data.kerelmek.total);
-      setLoadingButton(false);
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    api.request({
+      method: 'GET',
+      url: `/requests/own?offset=${page * 25}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
+        response.data.map((item) => {
+          item.dates = item.dates.map((date) => {
+            let newdate = new Date(date);
+            return newdate.toLocaleDateString();
+          });
+          return item;
+        });
+        setData(prevData => [...prevData, ...response.data]);
+        setPage(prevPage => prevPage + 1);
+      })
+      .catch((error) => {
+        console.log(error);
+        setError(true);
+      });
   };
 
   const handleUpdate = () => {
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/kerelmek/own`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // })
-    //   .then((response) => {
-    //     if (response.status != 200) setError(true);
-    //     if (response.data.status == 'fail') setError(true);
-    //     console.log(response);
-    //     setData(response.data.kerelmek.documents);
-    //     setTotal(response.data.kerelmek.total);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     setError(true);
-    //   });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK_OWN, JSON.stringify({
-      submittingId: user.$id
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setData(data.kerelmek.documents);
-      setTotal(data.kerelmek.total);
-      setErrorCounter(0);
-      setLoading(false);
+    setLoading(true);
+    api.request({
+      method: 'GET',
+      url: `/requests/own`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     })
-    .catch((error) => {
-      if (errorCounter < 3) {
-        handleUpdate();
-        setErrorCounter(errorCounter + 1);
-      } else {
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
+        response.data.map((item) => {
+          item.dates = item.dates.map((date) => {
+            let newdate = new Date(date);
+            return newdate.toLocaleDateString();
+          });
+          return item;
+        });
+        setData(response.data);
+        setPage(1);
+        setLoading(false);
+      })
+      .catch((error) => {
         console.log(error);
         setError(true);
-      }
-    });
+      });
   };
 
   return (
@@ -177,28 +131,14 @@ const UserRequests = () => {
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
-          setLoading(true);
           handleUpdate();
         }}>Frissítés</Button>
-        {total > data.length ? (
+        {!(data.length < page * 25) ? (
         <Button type='button' className='btn-primary mt-2 ms-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
-          setLoadingButton(true);
           loadMore();
         }}>
-          {loadingButton && (
-            <>
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-              Több kérelem betöltése...
-            </>
-          )}
-          {(data.length == 0 && !loadingButton) ? "Nincs több kérelem" : "Több kérelem betöltése"}
+          {(data.length == 0) ? "Nincs több kérelem" : "Több kérelem betöltése"}
         </Button>
         ) : <></>}
       </div>
@@ -220,7 +160,7 @@ const UserRequests = () => {
           </thead>
           <tbody>
             {data.map((item, index) => (
-              <tr key={item.$id}>
+              <tr key={item.id}>
                 <td>{index + 1}</td>
                 <td>{item.dates.join(", ")}</td>
                 <td>{item.type == "SZ" ? "Szabadság" :
@@ -233,12 +173,12 @@ const UserRequests = () => {
                   {item.approved ? "" : item.rejected ? "" : <Button type='button' className='btn-danger my-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
                     if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
-                      handleDelete(item.$id);
+                      handleDelete(item.id);
                     }
                   }}>Törlés</Button>}
                   <Button type='button' className='btn-warning mx-2 me-0 my-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
-                    handleView(item.$id);
+                    handleView(item.id);
                   }}>Megtekintés</Button>
                   {/* Development Function */}
                   {/* <Button type='button' className='btn-info me-0 my-1 shadow-smc' onClick={(e) => {

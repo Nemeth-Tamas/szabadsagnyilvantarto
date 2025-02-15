@@ -5,10 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser, selectToken, selectUser, setUser } from '../store/userSlice';
 import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes, PasswordField } from '../components';
-import axios from 'axios';
+import api from '../api';
 
 const Home = () => {
-  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
   const token = useSelector(selectToken);
@@ -20,7 +19,6 @@ const Home = () => {
   const [success, setSuccess] = useState(false);
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedType, setSelectedType] = useState('SZ');
-  const dispatch = useDispatch();
   const [takenDays, setTakenDays] = useState(new Map());
   const [currentlyOnLeave, setCurrentlyOnLeave] = useState(false);
   const [sick, setSick] = useState(null);
@@ -40,12 +38,11 @@ const Home = () => {
 
   const handleUpdate = () => {
     setErrorCode(ErrorCodes.FailedToLoadUsers);
-    axios.request({
+    api.request({
       method: 'GET',
-      url: `${url}/users`,
+      url: `/users`,
       headers: {
         'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
       }
     })
       .then((response) => {
@@ -60,11 +57,11 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (!token || (Date.now() >= user.exp * 1000)) {
+    if (!token) {
       navigate('/login');
     }
 
-    if (token && user.id) {
+    if (user.id) {
       getUserSick();
       getUserDays();
       getUserPlanFilled();
@@ -82,10 +79,9 @@ const Home = () => {
     
     let options = {
       method: 'POST',
-      url: `${url}/requests`,
+      url: `/requests`,
       headers: {
         'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
       },
       data: {
         managerId: data.find((user) => user.id == submittingId)?.managerId,
@@ -119,7 +115,7 @@ const Home = () => {
 
     if (doNotProceed) return;
     setErrorCode(ErrorCodes.RequestNotSent);
-    axios.request(options)
+    api.request(options)
       .then((response) => {
         console.log("HERE:", response);
         if (response.status != 200) setError(true);
@@ -129,6 +125,8 @@ const Home = () => {
         setError(true);
       });
     setSelectedDates([]);
+    setLoadingSendButton(false);
+    setSuccess(true);
   }
 
   const handleRadioChange = (e) => {
@@ -138,15 +136,14 @@ const Home = () => {
   const getUserPlanFilled = () => {
     let options = {
       method: 'GET',
-      url: `${url}/plans/${user.id}`,
+      url: `/plans/${user.id}`,
       headers: {
         'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
       }
     }
 
     setErrorCode(ErrorCodes.ServerError);
-    axios.request(options)
+    api.request(options)
       .then((response) => {
         console.log(response);
         if (response.status == 200) {
@@ -163,14 +160,13 @@ const Home = () => {
     let takenDaysCurrent = new Map();
     let options = {
       method: 'GET',
-      url: `${url}/leaves/own`,
+      url: `/leaves/own`,
       headers: {
         'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
       }
     }
     setErrorCode(ErrorCodes.ServerError);
-    axios.request(options)
+    api.request(options)
       .then((response) => {
         console.log(response);
         if (response.status != 200) setError(true);
@@ -215,14 +211,13 @@ const Home = () => {
   const getUserSick = () => {
     let options = {
       method: 'GET',
-      url: `${url}/tappenz/current/${user.id}`,
+      url: `/tappenz/current/${user.id}`,
       headers: {
         'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`
       }
     }
 
-    axios.request(options).then((response) => {
+    api.request(options).then((response) => {
       if (response.status != 200) setError(true);
       setSick(response.data.current);
     }).catch((error) => {

@@ -4,7 +4,8 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser, selectUser } from '../store/userSlice';
+import { logoutUser, selectToken, selectUser } from '../store/userSlice';
+import api from '../api';
 
 
 const MainNavbar = () => {
@@ -13,27 +14,28 @@ const MainNavbar = () => {
   const [kerelmekCount, setKerelmekCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const user = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    handleUpdate();
-  }, []);
+  // useEffect(() => {
+  //   handleUpdate();
+  // }, []);
 
-  const handleUpdate = () => {
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
-      submittingId: user.$id
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      setKerelmekCount(data.kerelmek.total);
-      setLoading(false);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  };
+  // const handleUpdate = () => {
+  //   functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
+  //     submittingId: user.$id
+  //   }))
+  //   .then((response) => {
+  //     let data = JSON.parse(response.responseBody);
+  //     console.log(data);
+  //     setKerelmekCount(data.kerelmek.total);
+  //     setLoading(false);
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   });
+  // };
 
   const switchTheme = () => {
     if (theme == "light") {
@@ -53,17 +55,12 @@ const MainNavbar = () => {
     }
   }, [theme]);
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
     console.log("logging out");
-    logout()
-      .then(() => {
-        dispatch(logoutUser())
-        navigate('/login');
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    await api.post('/logout', {}, { withCredentials: true });
+    dispatch(logoutUser())
+    navigate('/login');
   }
 
   return (
@@ -74,27 +71,27 @@ const MainNavbar = () => {
           <Navbar.Toggle aria-controls='basic-navbar-nav' />
           <Navbar.Collapse id='basic-navbar-nav'>
             <Nav className='me-auto'>
-              {(user && user.$id) ? (
+              {(token && user.id) ? (
                 <LinkContainer to="/">
                   <Nav.Link>Főoldal</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {(user && user.$id) ? (
+              {(token && user.id) ? (
                 <LinkContainer to="/messages">
                   <Nav.Link>Üzenetek</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {(user && user.$id) ? (
+              {(token && user.id) ? (
                 <LinkContainer to="/userrequests">
                   <Nav.Link>Saját kérelmek</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {user?.prefs?.perms.includes("irodavezeto.approve") ? (
+              {user?.role != "felhasznalo" ? (
                 <LinkContainer to="/requests">
                   <Nav.Link>Kérelmek {(kerelmekCount != 0 && !loading) ? `(${kerelmekCount})` : ""}</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {user?.prefs?.perms.includes("irodavezeto.list_own") || user?.prefs?.perms.includes("jegyzo.list_all") ? (
+              {user?.role != "felhasznalo" ? (
                 <LinkContainer to="/users">
                   <Nav.Link>Felhasználók</Nav.Link>
                 </LinkContainer>
@@ -108,7 +105,7 @@ const MainNavbar = () => {
               window.location.reload();
             }}>Cache törlése</Button> */}
             <Nav>
-              {(user && user.$id) ? (
+              {(token && user.id) ? (
                 <Button variant='outline-primary' className='me-auto mt-sm-2 mt-md-0' onClick={handleLogout}>Kijelentkezés</Button>
               ) : ""}
             </Nav>

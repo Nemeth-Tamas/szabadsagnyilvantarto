@@ -4,8 +4,8 @@ import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, setUser } from '../store/userSlice';
-import axios from 'axios';
-import jwt from 'jsonwebtoken';
+import api from '../api';
+import { jwtDecode } from 'jwt-decode';
 
 const LoginComponent = () => {
   const {theme} = useContext(ThemeContext);
@@ -18,7 +18,7 @@ const LoginComponent = () => {
     if (user && user.$id) {
       navigate('/');
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault(true);
@@ -28,19 +28,20 @@ const LoginComponent = () => {
     handleLogin(username, password)
   }
 
-  const handleLogin = (username, password) => {
-    axios.post(import.meta.env.VITE_BACKEND_BASEADDRESS + '/login', {
-      'email': username, 'password': password
-    }).then((response) => {
-      console.log(response.data);
-      let token = response.data.token;
-      let user = jwt.decode(token);
-      dispatch(setUser({user: user, token: token}));
+  const handleLogin = async (username, password) => {
+    try {
+      const response = await api.post('/login', {
+        email: username,
+        password: password
+      });
+      const token = response.data.accessToken;
+      const decodedUser = jwtDecode(token);
+      dispatch(setUser({ token, user: decodedUser }));
       navigate('/');
-    }).catch((error) => {
-      console.log(error);
+    } catch (error) {
+      console.error(error);
       setLoginError(true);
-    });
+    }
   }
 
   return (
@@ -54,11 +55,11 @@ const LoginComponent = () => {
           <Form onSubmit={handleSubmit}>
             <Form.Group className='mb-3' controlId='formUsername'>
               <Form.Label>Felhasználónév</Form.Label>
-              <Form.Control type='username' placeholder='Felhasználónév' />
+              <Form.Control type='username' placeholder='Felhasználónév' value='demoadmin@celldomolk.hivatal' />
             </Form.Group>
             <Form.Group className='mb-3' controlId='formPassword'>
               <Form.Label>Jelszó</Form.Label>
-              <Form.Control type='password' placeholder='Jelszó' />
+              <Form.Control type='password' placeholder='Jelszó' value='testpass' />
             </Form.Group>
             <Button variant='primary' type='subbmit' className='shadow-smc'>
               Bejelentkezés

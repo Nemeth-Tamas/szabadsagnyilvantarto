@@ -1,42 +1,39 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../store/userSlice';
-import axios from 'axios';
+import { selectToken, selectUser } from '../store/userSlice';
 import { Button, Table, ToastContainer } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes, LoadingCircle } from '../components';
 import { useNavigate } from 'react-router';
+import api from '../api';
 
 const Messages = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const [data, setData] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const [error, setError] = useState(false);
-  const [errorCounter, setErrorCounter] = useState(0);
-  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
 
   useEffect(() => {
-    if (!user || !user.$id) {
+    if (!token) {
       navigate('/login');
-      return;
     }
     handleUpdate();
   }, []);
 
   const loadMore = () => {
-    axios.request({
+    api.request({
       method: 'GET',
-      url: `${url}/uzenetek/${user.$id}?offset=${data.length}`,
+      url: `/uzenetek?offset=${page*25}`,
       headers: {
         'Content-Type': 'application/json',
       }
     }).then((response) => {
-      console.log(response.data.messages.documents);
-      setData(prevData => [...prevData, ...response.data.messages.documents]);
-      setTotal(response.data.messages.total);
+      console.log(response.data);
+      setData(prevData => [...prevData, ...response.data]);
+      setPage(prevPage => prevPage + 1);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -44,40 +41,18 @@ const Messages = () => {
   };
 
   const handleUpdate = () => {
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/uzenetek/${user.$id}`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   }
-    // }).then((response) => {
-    //   console.log(response.data.messages.documents);
-    //   setData(response.data.messages.documents);
-    //   setTotal(response.data.messages.total);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUZENETEK, JSON.stringify({
-      userId: user.$id
-    }))
-    .then((response) => {       
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setData(data.messages.documents);
-      setTotal(data.messages.total);
-      setErrorCounter(0);
-      setLoading(false);
-    })
-    .catch((error) => {
-      if (errorCounter < 3) {
-        setErrorCounter(errorCounter + 1);
-        handleUpdate();
-      } else {
-        console.log(error);
-        setError(true);
+    api.request({
+      method: 'GET',
+      url: `/messages`,
+      headers: {
+        'Content-Type': 'application/json',
       }
+    }).then((response) => {
+      console.log(response.data);
+      setData(response.data);
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
     });
   };
 
@@ -92,7 +67,7 @@ const Messages = () => {
           e.preventDefault();
           handleUpdate();
         }}>Frissítés</Button>
-        {total > data.length ? (
+        {!(data.length < page*25) ? (
         <Button type='button' className='btn-primary mt-2 ms-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           loadMore();
@@ -101,30 +76,27 @@ const Messages = () => {
         </Button>
         ) : <></>}
       </div>
-      {loading ? (
-        <LoadingCircle />
-      ) : (
-        <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
-          <thead>
-            <tr>
-              <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
-              <th style={{ maxWidth: "20%", width: "20%" }}>Feladó</th>
-              <th style={{ maxWidth: "20%", width: "20%" }}>Dátum</th>
-              <th style={{ maxWidth: "57%", width: "57%" }}>Üzenet</th>
+
+      <Table className={theme == "dark" ? 'table-dark table-striped mt-2 shadow-dark' : 'table-striped mt-2 shadow-light'}>
+        <thead>
+          <tr>
+            <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
+            <th style={{ maxWidth: "20%", width: "20%" }}>Feladó</th>
+            <th style={{ maxWidth: "20%", width: "20%" }}>Dátum</th>
+            <th style={{ maxWidth: "57%", width: "57%" }}>Üzenet</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item, index) => (
+            <tr key={index + item.$id}>
+              <td>{index + 1}</td>
+              <td>{item.sendingName}</td>
+              <td>{new Date(item.date).toLocaleDateString()}</td>
+              <td>{item.message}</td>
             </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => (
-              <tr key={index + item.$id}>
-                <td>{index + 1}</td>
-                <td>{item.sendingName}</td>
-                <td>{new Date(item.date).toLocaleDateString()}</td>
-                <td>{item.message}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      )}
+          ))}
+        </tbody>
+      </Table>
     </>
   )
 }

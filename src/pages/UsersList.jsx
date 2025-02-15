@@ -1,20 +1,21 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../store/userSlice';
+import { selectToken, selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
 import { Button, ButtonGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast, LoadingCircle } from '../components';
 import bcrypt from 'bcryptjs';
+import api from '../api';
 
 const UsersList = () => {
   const { theme } = useContext(ThemeContext);
   const user = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const [data, setData] = useState([]);
   const [error, setError] = useState(false);
   const [errorCode, setErrorCode] = useState(ErrorCodes.UnknownError);
-  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const devmode = import.meta.env.VITE_DEVMODE;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -60,9 +61,8 @@ const UsersList = () => {
 
   useEffect(() => {
     console.log(user);
-    if (!user?.prefs?.perms?.includes('irodavezeto.list_own') &&
-      !user?.prefs?.perms?.includes('jegyzo.list_all')) {
-      navigate('/');
+    if (!token || !user.role == 'admin') {
+      navigate('/login');
     }
     handleUpdate();
     // handleView(user.$id);
@@ -70,38 +70,23 @@ const UsersList = () => {
 
   const handleUpdate = () => {
     setErrorCode(ErrorCodes.FailedToLoadUsers);
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/users`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // })
-    //   .then((response) => {
-    //     if (response.status != 200) setError(true);
-    //     if (response.data.status == 'fail') setError(true);
-    //     console.log("Total users recv: ", response.data.usersList.users.length);
-    //     console.log("Total users expected: ", response.data.usersList.total);
-    //     console.log(response);
-    //     setData(response.data.usersList.users);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     setError(true);
-    //   });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERS, JSON.stringify({
-      submittingId: user.$id
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setData(data.usersList.users);
-      setLoadingUsers(false);
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    api.request({
+      method: 'GET',
+      url: `/users`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
+        setData(response.data);
+        setLoadingUsers(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setError(true);
+      });
   };
   // TODO: Everywhere change setError to return
   const handleView = (id, name) => {
@@ -252,29 +237,15 @@ const UsersList = () => {
 
   const deleteUser = (id) => {
     setErrorCode(ErrorCodes.ErrorWhileDeletingUser);
-    // axios.request({
-    //   method: 'DELETE',
-    //   url: `${url}/users/${id}`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   console.log(response);
-    //   handleUpdate();
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETEUSER, JSON.stringify({
-      submittingId: user.$id,
-      userId: id
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
+    api.request({
+      method: 'DELETE',
+      url: `/users/${id}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      console.log(response);
       handleUpdate();
     }).catch((error) => {
       console.log(error);
@@ -363,64 +334,34 @@ const UsersList = () => {
 
     if (postUserRole == 'felhasznalo') postUserPerms = felhasznaloPreset;
 
-    bcrypt.hash(random.trim(), 10).then((hash) => {
-      console.log(hash);
-      postUserPassword = hash;
+    postUserDaysLeft = postUserMaxdays;
+    setLoadingUsers(true);
 
-      postUserDaysLeft = postUserMaxdays;
+    postUserPassword = random;
 
-      // axios.request({
-      //   method: 'POST',
-      //   url: `${url}/users/register`,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'submittingId': user.$id
-      //   },
-      //   data: {
-      //     email: postUserEmail,
-      //     password: postUserPassword,
-      //     name: postUserUsername,
-      //     role: postUserRole,
-      //     manager: postUserManager,
-      //     perms: postUserPerms,
-      //     maxdays: postUserMaxdays,
-      //     remainingdays: postUserDaysLeft
-      //   }
-      // }).then((response) => {
-      //   if (response.status != 200) setError(true);
-      //   if (response.data.status == 'fail') setError(true);
-      //   console.log(response);
-      //   handleUpdate();
-      //   setSuccess(true);
-      // }).catch((error) => {
-      //   console.log(error);
-      //   setError(true);
-      // });
-      setLoadingUsers(true);
-      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_CREATEUSER, JSON.stringify({
-        submittingId: user.$id,
+    api.request({
+      method: 'POST',
+      url: `/users/register`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
         email: postUserEmail,
         password: postUserPassword,
         name: postUserUsername,
         role: postUserRole,
         manager: postUserManager,
         perms: postUserPerms,
-        maxdays: postUserMaxdays,
-        remainingdays: postUserDaysLeft
-      })).then((response) => {
-        let data = JSON.parse(response.responseBody);
-        console.log(data);
-        if (data.status == 'fail') setError(true);
-        handleUpdate();
-        setSuccess(true);
-      }).catch((error) => {
-        console.log(error);
-        setError(true);
-      });
-
+        maxDays: postUserMaxdays,
+        remainingDays: postUserDaysLeft
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      console.log(response);
+      handleUpdate();
+      setSuccess(true);
     }).catch((error) => {
       console.log(error);
-      setErrorCode(ErrorCodes.FailedToEncryptPassword);
       setError(true);
     });
   };
@@ -488,89 +429,55 @@ const UsersList = () => {
       return;
     }
 
-    setErrorCode(ErrorCodes.FailedToEncryptPassword);
-    bcrypt.hash(userPassword.trim(), 10).then((hash) => {
-      console.log(hash);
-      postUserPassword = hash;
+    postUserPassword = userPassword;
 
-      if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserPerms == '' || postUserMaxdays < 0 || postUserDaysLeft < -1) {
-        setErrorCode(ErrorCodes.EmptyField);
-        setError(true);
-        return;
-      }
+    if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserPerms == '' || postUserMaxdays < 0 || postUserDaysLeft < -1) {
+      setErrorCode(ErrorCodes.EmptyField);
+      setError(true);
+      return;
+    }
 
-      if (postUserEmail.length < 5 || postUserPassword.length < 5) {
-        setErrorCode(ErrorCodes.UsernameOrPasswordTooShort);
-        setError(true);
-        return;
-      }
+    if (postUserEmail.length < 5 || postUserPassword.length < 5) {
+      setErrorCode(ErrorCodes.UsernameOrPasswordTooShort);
+      setError(true);
+      return;
+    }
 
-      if (!postUserEmail.includes('@') || !postUserEmail.includes('.')) {
-        setErrorCode(ErrorCodes.UsernameDoesNotContainAt);
-        setError(true);
-        return;
-      }
+    if (!postUserEmail.includes('@') || !postUserEmail.includes('.')) {
+      setErrorCode(ErrorCodes.UsernameDoesNotContainAt);
+      setError(true);
+      return;
+    }
 
-      if (userDaysLeft == -1) postUserDaysLeft = postUserMaxdays;
-
-      setErrorCode(ErrorCodes.FailedToRegisterUser);
-      // axios.request({
-      //   method: 'POST',
-      //   url: `${url}/users/register`,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'submittingId': user.$id
-      //   },
-      //   data: {
-      //     email: postUserEmail,
-      //     password: postUserPassword,
-      //     name: postUserUsername,
-      //     role: postUserRole,
-      //     manager: postUserManager,
-      //     perms: postUserPerms,
-      //     maxdays: postUserMaxdays,
-      //     remainingdays: postUserDaysLeft
-      //   }
-      // }).then((response) => {
-      //   if (response.status != 200) setError(true);
-      //   if (response.data.status == 'fail') setError(true);
-      //   console.log(response);
-      //   handleUpdate();
-      //   handleCreateUserClose();
-      //   setSuccess(true);
-      // }).catch((error) => {
-      //   console.log(error);
-      //   setError(true);
-      // });
-      setLoadingUsers(true);
-      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_CREATEUSER, JSON.stringify({
-        submittingId: user.$id,
-        email: postUserEmail,
-        password: postUserPassword,
-        name: postUserUsername,
-        role: postUserRole,
-        manager: postUserManager,
-        perms: postUserPerms,
-        maxdays: postUserMaxdays,
-        remainingdays: postUserDaysLeft
-      })).then((response) => {
-        let data = JSON.parse(response.responseBody);
-        console.log(data);
-        if (data.status == 'fail') setError(true);
-        handleCreateUserClose();
+    if (userDaysLeft == -1) postUserDaysLeft = postUserMaxdays;
+    setLoadingUsers(true);
+    setErrorCode(ErrorCodes.FailedToRegisterUser);
+      api.request({
+        method: 'POST',
+        url: `/users/register`,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: {
+          email: postUserEmail,
+          password: postUserPassword,
+          name: postUserUsername,
+          role: postUserRole,
+          manager: postUserManager,
+          perms: postUserPerms,
+          maxdays: postUserMaxdays,
+          remainingdays: postUserDaysLeft
+        }
+      }).then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
         handleUpdate();
+        handleCreateUserClose();
         setSuccess(true);
       }).catch((error) => {
         console.log(error);
         setError(true);
       });
-
-    }).catch((error) => {
-      console.log(error);
-      setErrorCode(ErrorCodes.FailedToEncryptPassword);
-      setError(true);
-    });
-
   };
 
   const sendMessage = (id) => {
@@ -590,43 +497,24 @@ const UsersList = () => {
     }
 
     setErrorCode(ErrorCodes.FailedToSendMessage);
-    // axios.request({
-    //   method: 'POST',
-    //   url: `${url}/uzenetek/create`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     userId: postUserId,
-    //     message: postMessageContent,
-    //     date: postMessageDate
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   console.log(response);
-    //   handleUpdate();
-    //   handleSendMessageClose();
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_CREATEUZENET, JSON.stringify({
-      submittingId: user.$id,
-      message: postMessageContent,
-      userId: postUserId,
-      date: postMessageDate
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
+    api.request({
+      method: 'POST',
+      url: `/uzenetek/create`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        userId: postUserId,
+        message: postMessageContent,
+        date: postMessageDate
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      console.log(response);
       handleUpdate();
       setSendLoading(false);
       handleSendMessageClose();
-    })
-    .catch((error) => {
+    }).catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -664,26 +552,26 @@ const UsersList = () => {
 
     //   console.log(response);
     // }).catch((error) => { console.log(error) });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_PLANS_EXCEL, JSON.stringify({
-      submittingId: user.$id,
-      userId: uid
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      let fileId = data.fileId;
+    // functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_PLANS_EXCEL, JSON.stringify({
+    //   submittingId: user.$id,
+    //   userId: uid
+    // })).then((response) => {
+    //   let data = JSON.parse(response.responseBody);
+    //   console.log(data);
+    //   let fileId = data.fileId;
 
-      const res = storage.getFileDownload(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
-      console.log(res);
-      const link = document.createElement('a');
-      link.href = res.href;
-      document.body.appendChild(link);
+    //   const res = storage.getFileDownload(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
+    //   console.log(res);
+    //   const link = document.createElement('a');
+    //   link.href = res.href;
+    //   document.body.appendChild(link);
 
-      link.click();
-      link.remove();
+    //   link.click();
+    //   link.remove();
 
-      storage.deleteFile(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
-      setLoadingDownload(false);
-    }).catch((error) => { console.log(error) });
+    //   storage.deleteFile(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
+    //   setLoadingDownload(false);
+    // }).catch((error) => { console.log(error) });
   }
 
   return (
@@ -791,7 +679,7 @@ const UsersList = () => {
               <label htmlFor="userUsername" className="form-label">Név</label>
               <input type="text" className="form-control" id="userUsername" value={userUsername} onChange={(e) => setUserUsername(e.target.value)} />
             </div>
-            {user?.prefs?.role == 'admin' && (
+            {user?.role == 'admin' && (
               <>
                 <div className="mb-3">
                   <label htmlFor="userMaxdays" className='form-label'>Összes szabadság száma</label>
@@ -809,19 +697,19 @@ const UsersList = () => {
                 <option value=''>Válasszon...</option>
                 <option value='felhasznalo'>Felhasználó</option>
                 <option value='irodavezeto'>Irodavezető</option>
-                {user?.prefs?.role == 'admin' && <option value='jegyzo'>Jegyző</option>}
-                {user?.prefs?.role == 'admin' && <option value='admin'>Admin</option>}
+                {user?.role == 'admin' && <option value='jegyzo'>Jegyző</option>}
+                {user?.role == 'admin' && <option value='admin'>Admin</option>}
               </select>
             </div>
             <div className="mb-3">
               <label htmlFor="userManager" className="form-label">Felettes</label>
               <select className="form-select" id="userManager" value={userManager} onChange={(e) => setUserManager(e.target.value)}>
                 <option value=''>Válasszon...</option>
-                {user?.prefs?.role == 'irodavezeto' && <option value={user.$id}>{user.name}</option>}
-                {user?.prefs?.role == 'admin' && data.map((u) => {
-                  if (u.prefs?.role == 'irodavezeto' || u.prefs?.role == 'jegyzo' || u.prefs?.role == 'admin') {
+                {user?.role == 'irodavezeto' && <option value={user.id}>{user.name}</option>}
+                {user?.role == 'admin' && data.map((u) => {
+                  if (u.role == 'irodavezeto' || u.role == 'jegyzo' || u.role == 'admin') {
                     return (
-                      <option key={u.$id} value={u.$id}>{u.name}</option>
+                      <option key={u.id} value={u.id}>{u.name}</option>
                     );
                   } else {
                     return null;
@@ -852,7 +740,7 @@ const UsersList = () => {
           setLoadingUsers(true);
           handleUpdate();
         }}>Frissítés</Button>
-        {user?.prefs?.perms?.includes('jegyzo.create_user') && (
+        {(user?.role != "felhasznalo" || user?.role != "irodavezeto") && (
           <Button type='button' className='btn-primary mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
             e.preventDefault();
             createUser();
@@ -868,7 +756,7 @@ const UsersList = () => {
             Generate Radnom User
           </Button>
         )}
-        {(user?.prefs?.perms?.includes('hr.edit_user_current_state') && new Date().getMonth() == 2) && (
+        {(user?.role == "admin" && new Date().getMonth() == 2) && (
           <Button type='button' className='btn-danger mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
             e.preventDefault();
             if (window.confirm("Biztos szeretné az összes felhasználó szabadság tervét törölni?")) deletePlan('reset');
@@ -894,11 +782,11 @@ const UsersList = () => {
           </thead>
           <tbody>
             {data.map((u, index) => (
-              <tr key={u.$id + index} className={`${u.prefs.sick 
+              <tr key={u.id + index} className={`${u.sick 
                                                   ? 'table-danger' 
-                                                  : u.prefs.onLeave 
+                                                  : u.onLeave 
                                                   ? 'table-warning' 
-                                                  : (u.prefs.manager == user.$id && user.prefs.perms.includes("jegyzo.list_all")) 
+                                                  : (u.managerId == user.id && user.prefs.perms.includes("jegyzo.list_all")) 
                                                   ? 'table-secondary' 
                                                   : ''}`}>
                 <td>{index + 1}</td>
@@ -912,28 +800,28 @@ const UsersList = () => {
                   }}>
                     Naptár
                   </Button>
-                  {user?.prefs?.perms?.includes('irodavezeto.message_send') && (
+                  {user?.role != "felhasznalo" && (
                     <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
                       sendMessage(u.$id);
                     }}>Üzenet küzdés</Button>
                   )}
-                  {user?.prefs?.perms?.includes('jegyzo.edit_user') && (
+                  {(user?.role == "jegyzo" || user?.role == "admin") && (
                     <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
                       editUser(u.$id);
                     }}>Szerkesztés</Button>
                   )}
-                  {(user?.prefs?.perms?.includes('hr.edit_user_current_state') || user?.prefs?.perms?.includes('jegyzo.delete_user')) && (
+                  {(user?.role == "admin" || user?.role == "jegyzo") && (
                     <ButtonGroup aria-label='törlés' className='my-1 mx-1 shadow-smc'>
                       <a href='#' role='button' className='btn btn-danger btn-xs' id='label-btn' aria-disabled='true'>Törlés</a>
-                      {user?.prefs?.perms?.includes('hr.edit_user_current_state') && (
+                      {user?.role == "admin" && (
                         <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
                           e.preventDefault();
                           if (window.confirm("A törléssel a teljes éves szabadság terv törlésre kerül a felhasználó számára!\nBiztos szeretné a felhasználó szabadság tervét törölni?")) deletePlan(u.$id);
                         }}>Terv</Button>
                       )}
-                      {user?.prefs?.perms?.includes('jegyzo.delete_user') && (
+                      {(user?.role == "jegyzo" || user?.role == "admin") && (
                         <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
                           e.preventDefault();
                           setLoadingUsers(true);

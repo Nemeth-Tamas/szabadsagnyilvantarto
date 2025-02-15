@@ -1,35 +1,34 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { ThemeContext } from '../ThemeContext'
 import { useSelector } from 'react-redux';
-import { selectUser } from '../store/userSlice';
+import { selectToken, selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
-import axios from 'axios';
 import { Button, Modal, Spinner, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
+import api from '../api';
 
 const Requests = () => {
   const { theme } = useContext(ThemeContext);
-  const user = useSelector(selectUser)
+  const user = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const [data, setData] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [error, setError] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarId, setCalendarId] = useState(null);
   const [showRejectMessage, setShowRejectMessage] = useState(false);
   const [rejectId, setRejectId] = useState(null);
   const [rejectMessage, setRejectMessage] = useState('');
-  const [errorCounter, setErrorCounter] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingButton, setLoadingButton] = useState(false);
-  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const navigate = useNavigate();
 
   const handleCalendarClose = () => { setShowCalendar(false); setCalendarId(null); }
   const handleRejectClose = () => { setShowRejectMessage(false); setRejectId(null); setRejectMessage(''); }
 
   useEffect(() => {
-    if (!user?.prefs?.perms?.includes('irodavezeto.approve')) {
-      navigate('/');
+    if (!token) {
+      navigate('/login');
     }
     handleUpdate();
   }, []);
@@ -41,155 +40,99 @@ const Requests = () => {
   };
 
   const loadMore = () => {
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/kerelmek?offset=${data.length}`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // })
-    //   .then((response) => {
-    //     if (response.status != 200) setError(true);
-    //     if (response.data.status == 'fail') setError(true);
-    //     console.log(response);
-    //     setData(prevData => [...prevData, ...response.data.kerelmek.documents]);
-    //     setTotal(response.data.kerelmek.total);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     setError(true);
-    //   });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
-      submittingId: user.$id,
-      offset: data.length
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setData(prevData => [...prevData, ...data.kerelmek.documents]);
-      setTotal(data.kerelmek.total);
-      setLoadingButton(false);
+    api.request({
+      method: 'GET',
+      url: `/requests?offset=${page * 25}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     })
-    .catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
+        response.data.map((item) => {
+          item.dates = item.dates.map((date) => {
+            let newdate = new Date(date);
+            return newdate.toLocaleDateString();
+          });
+          return item;
+        });
+        setData(prevData => [...prevData, ...response.data]);
+        setPage(prevPage => prevPage + 1);
+        setLoadingButton(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setError(true);
+      });
   }
 
   const handleUpdate = () => {
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/kerelmek`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // })
-    //   .then((response) => {
-    //     if (response.status != 200) setError(true);
-    //     if (response.data.status == 'fail') setError(true);
-    //     console.log(response);
-    //     setData(response.data.kerelmek.documents);
-    //     setTotal(response.data.kerelmek.total);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     setError(true);
-    //   });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
-      submittingId: user.$id
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setData(data.kerelmek.documents);
-      setTotal(data.kerelmek.total);
-      setErrorCounter(0);
-      setLoading(false);
+    setLoading(true);
+    api.request({
+      method: 'GET',
+      url: `/requests`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     })
-    .catch((error) => {
-      if (errorCounter < 3) {
-        handleUpdate();
-        setErrorCounter(errorCounter + 1);
-      } else {
+      .then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
+        response.data.map((item) => {
+          item.dates = item.dates.map((date) => {
+            let newdate = new Date(date);
+            return newdate.toLocaleDateString();
+          });
+          return item;
+        });
+        setData(response.data);
+        setPage(1);
+        setLoading(false);
+      })
+      .catch((error) => {
         console.log(error);
         setError(true);
-      }
-    });
+      });
   };
 
   const handleDelete = (id) => {
     console.log(id);
-
-    // const options = {
-    //   method: 'DELETE',
-    //   url: `${url}/kerelmek/${id}`,
-    //   headers: {
-    //     'submittingId': user.$id
-    //   }
-    // }
-
-    // console.log(options);
-
-    // axios.request(options)
-    //   .then((response) => {
-    //     console.log(response);
-    //     handleUpdate();
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
     setLoading(true);
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETE_KERELMEK, JSON.stringify({
-      submittingId: user.$id,
-      kerelemId: id
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
+    const options = {
+      method: 'DELETE',
+      url: `/requests/${id}`,
+    }
 
-      handleUpdate();
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    api.request(options)
+      .then((response) => {
+        console.log(response);
+        handleUpdate();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const handleApprove = (id) => {
     console.log(id);
 
-    // const options = {
-    //   method: 'PUT',
-    //   url: `${url}/kerelmek/${id}/approve`,
-    //   headers: {
-    //     'submittingId': user.$id
-    //   }
-    // }
-
-    // console.log(options);
-
-    // axios.request(options)
-    //   .then((response) => {
-    //     console.log(response);
-    //     handleUpdate();
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
     setLoading(true);
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_APPROVE_KERELMEK, JSON.stringify({
-      submittingId: user.$id,
-      kerelemId: id
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      handleUpdate();
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    const options = {
+      method: 'PATCH',
+      url: `/requests/${id}/approve`,
+    }
+
+    console.log(options);
+
+    api.request(options)
+      .then((response) => {
+        console.log(response);
+        handleUpdate();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const handleReject = (id) => {
@@ -203,40 +146,24 @@ const Requests = () => {
     handleRejectClose();
     console.log(rejectId);
 
-    // const options = {
-    //   method: 'PUT',
-    //   url: `${url}/kerelmek/${rejectId}/reject`,
-    //   headers: {
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     rejectedMessage: rejectMessage
-    //   }
-    // }
+    const options = {
+      method: 'PATCH',
+      url: `/requests/${rejectId}/reject`,
+      data: {
+        reason: rejectMessage
+      }
+    }
 
-    // console.log(options);
+    console.log(options);
 
-    // axios.request(options)
-    //   .then((response) => {
-    //     console.log(response);
-    //     handleUpdate();
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
-    setLoading(true);
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_REJECT_KERELMEK, JSON.stringify({
-      submittingId: user.$id,
-      kerelemId: rejectId,
-      rejectedMessage: rejectMessage
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      handleUpdate();
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
+    api.request(options)
+      .then((response) => {
+        console.log(response);
+        handleUpdate();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (
@@ -287,7 +214,7 @@ const Requests = () => {
           setLoading(true);
           handleUpdate();
         }}>Frissítés</Button>
-        {total > data.length ? (
+        {!(data.length < page * 25) ? (
         <Button type='button' className='btn-primary mt-2 ms-2 flex-grow-1 shadow-smc' onClick={(e) => {
           e.preventDefault();
           setLoadingButton(true);
@@ -327,7 +254,7 @@ const Requests = () => {
           </thead>
           <tbody>
             {data.map((item, index) => (
-              <tr key={item.$id}>
+              <tr key={item.id}>
                 <td><strong>{item.submittingName}</strong></td>
                 <td>{item.dates.join(", ")}</td>
                 <td>{item.type == "SZ" ? "Szabadság" :
@@ -340,23 +267,22 @@ const Requests = () => {
                   {item.approved ? "" : item.rejected ? "" : (<>
                     <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
-                      handleApprove(item.$id);
+                      handleApprove(item.id);
                     }}>Elfogadás</Button>
-                    {user.prefs.perms.includes('irpdavezeto.reject') ?
                       <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
                         e.preventDefault();
-                        handleReject(item.$id);
-                      }}>Visszautasítás</Button> : ""}<br /></>
+                        handleReject(item.id);
+                      }}>Visszautasítás</Button><br /></>
                   )}
                   <Button type='button' className='btn-primary mx-1 my-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
-                    handleView(item.$id);
+                    handleView(item.id);
                   }}>Megtekintés</Button>
-                  {user.prefs.perms.includes('hr.edit_user_current_state') ?
+                  {user?.role == "admin" ?
                     <Button type='button' className='btn-danger my-1 me-0 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
                       if (window.confirm('Biztosan törölni szeretné a kérelmet?')) {
-                        handleDelete(item.$id);
+                        handleDelete(item.id);
                       }
                     }}>Törlés</Button> : ""}
                   {/* Development Function */}

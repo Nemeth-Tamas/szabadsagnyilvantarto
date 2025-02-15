@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { jwtDecode } from "jwt-decode";
 
 export const userSlice = createSlice({
     name: "user",
