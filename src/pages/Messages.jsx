@@ -88,7 +88,7 @@ const Messages = () => {
         </thead>
         <tbody>
           {data.map((item, index) => (
-            <tr key={index + item.$id}>
+            <tr key={index + item.id}>
               <td>{index + 1}</td>
               <td>{item.sendingName}</td>
               <td>{new Date(item.date).toLocaleDateString()}</td>

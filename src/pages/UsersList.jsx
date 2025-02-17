@@ -3,10 +3,8 @@ import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectToken, selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
-import axios from 'axios';
 import { Button, ButtonGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast, LoadingCircle } from '../components';
-import bcrypt from 'bcryptjs';
 import api from '../api';
 
 const UsersList = () => {
@@ -65,7 +63,7 @@ const UsersList = () => {
       navigate('/login');
     }
     handleUpdate();
-    // handleView(user.$id);
+    // handleView(user.id);
   }, []);
 
   const handleUpdate = () => {
@@ -91,101 +89,46 @@ const UsersList = () => {
   // TODO: Everywhere change setError to return
   const handleView = (id, name) => {
     setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/szabadsagok/${id}`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   setUserCalendarData(response.data.szabadsag.documents);
-    //   setUidForDownload(id);
-    //   setUnameForDownload(name)
-
-    //   // get user max and left days
-    //   setErrorCode(ErrorCodes.FailedToLoadUser);
-    //   axios.request({
-    //     method: 'GET',
-    //     url: `${url}/users/${id}`,
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'submittingId': user.$id
-    //     }
-    //   }).then((response) => {
-    //     if (response.status != 200) setError(true);
-    //     if (response.data.status == 'fail') setError(true);
-    //     console.log(response);
-    //     setUserCalendarStats(response.data.user.prefs);
-    //     // get sick days
-    //     const options = {
-    //       method: 'GET',
-    //       url: `${url}/tappenz/${id}/cumulative`,
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'submittingId': user.$id
-    //       }
-    //     }
-
-    //     axios.request(options).then((response) => {
-    //       if (response.status != 200) { setError(true); return; }
-    //       if (response.data.status == 'fail') { setError(true); return; }
-
-    //       setTappenz(response.data.cumulative);
-    //       setShowCalendar(true);
-    //     }).catch((error) => { 
-    //       console.log(error);
-    //       setError(true);
-    //     });
-    //   }).catch((error) => {
-    //     console.log(error);
-    //     setErrorCode(ErrorCodes.FailedToLoadUser);
-    //     setError(true);
-    //   });
-
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETSZABADSAGOKBYID, JSON.stringify({
-      submittingId: user.$id,
-      userId: id
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      console.log(data);
-      if (data.status == 'fail') setError(true);
-      setUserCalendarData(data.szabadsag.documents);
+    api.request({
+      method: 'GET',
+      url: `/leaves/${id}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      setUserCalendarData(response.data);
       setUidForDownload(id);
-      setUnameForDownload(name);
+      setUnameForDownload(name)
 
       // get user max and left days
       setErrorCode(ErrorCodes.FailedToLoadUser);
-      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERBYID, JSON.stringify({
-        submittingId: user.$id,
-        userId: id
-      })).then((response) => {
-        let data = JSON.parse(response.responseBody);
-        console.log(data);
-        if (data.status == 'fail') setError(true);
-        setUserCalendarStats(data.user.prefs);
-        
-        functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_CUMULATIVE, JSON.stringify({
-          submittingId: user.$id,
-          userId: id
-        }))
-        .then((response) => {
-          let data = JSON.parse(response.responseBody);
-          console.log(data);
-          if (data.status == 'fail') setError(true);
-          setTappenz(data.cumulative);
+      api.request({
+        method: 'GET',
+        url: `/user/${id}`,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }).then((response) => {
+        if (response.status != 200) setError(true);
+        console.log(response);
+        setUserCalendarStats(response.data);
+        // get sick days
+        const options = {
+          method: 'GET',
+          url: `/tappenz/cumulative/${id}`,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+
+        api.request(options).then((response) => {
+          if (response.status != 200) { setError(true); return; }
+
+          setTappenz(response.data);
           setLoading(false);
           setShowCalendar(true);
-        })
-        .catch((error) => {
+        }).catch((error) => { 
           console.log(error);
           setError(true);
         });
@@ -194,52 +137,19 @@ const UsersList = () => {
         setErrorCode(ErrorCodes.FailedToLoadUser);
         setError(true);
       });
-      // axios.request({
-      //   method: 'GET',
-      //   url: `${url}/users/${id}`,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'submittingId': user.$id
-      //   }
-      // }).then((response) => {
-      //   if (response.status != 200) setError(true);
-      //   if (response.data.status == 'fail') setError(true);
-      //   console.log(response);
-      //   setUserCalendarStats(response.data.user.prefs);
-      //   // get sick days
-      //   // const options = {
-      //   //   method: 'GET',
-      //   //   url: `${url}/tappenz/${id}/cumulative`,
-      //   //   headers: {
-      //   //     'Content-Type': 'application/json',
-      //   //     'submittingId': user.$id
-      //   //   }
-      //   // }
 
-      //   // axios.request(options).then((response) => {
-      //   //   if (response.status != 200) { setError(true); return; }
-      //   //   if (response.data.status == 'fail') { setError(true); return; }
-
-      //   //   setTappenz(response.data.cumulative);
-      //   //   setShowCalendar(true);
-      //   // }).catch((error) => { 
-      //   //   console.log(error);
-      //   //   setError(true);
-      //   // });
-        
-      // }).catch((error) => {
-      //   console.log(error);
-      //   setErrorCode(ErrorCodes.FailedToLoadUser);
-      //   setError(true);
-      // });
-    })
+    }).catch((error) => {
+      console.log(error);
+      setErrorCode(ErrorCodes.FailedToLoadSzabadsag);
+      setError(true);
+    });
   };
 
   const deleteUser = (id) => {
     setErrorCode(ErrorCodes.ErrorWhileDeletingUser);
     api.request({
       method: 'DELETE',
-      url: `/users/${id}`,
+      url: `/user/${id}`,
       headers: {
         'Content-Type': 'application/json',
       }
@@ -254,50 +164,21 @@ const UsersList = () => {
   };
 
   const deletePlan = (id) => {
-    if (id == "reset") {
-      setErrorCode(ErrorCodes.ErrorWhileDeletingAllPlans);
-      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETEALLPLANS, JSON.stringify({
-        submittingId: user.$id
-      })).then((response) => {
-        let data = JSON.parse(response.responseBody);
-        console.log(data);
-        if (data.status == 'fail') setError(true);
-        handleUpdate();
-      }).catch((error) => {
-        console.log(error);
-        setError(true);
-      });
-    }
-    else {
-      setErrorCode(ErrorCodes.ErrorWhileDeletingSignlePlan)
-      // axios.request({
-      //   method: 'DELETE',
-      //   url: `${url}/plans/${id}`,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'submittingId': user.$id
-      //   }
-      // }).then((response) => {
-      //   if (response.status != 200) setError(true);
-      //   if (response.data.status == 'fail') setError(true);
-      //   console.log(response);
-      // }).catch((error) => {
-      //   console.log(error);
-      //   setError(true);
-      // });
-      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_DELETEPLAN, JSON.stringify({
-        submittingId: user.$id,
-        userId: id
-      })).then((response) => {
-        let data = JSON.parse(response.responseBody);
-        console.log(data);
-        if (data.status == 'fail') setError(true);
-        handleUpdate();
-      }).catch((error) => {
-        console.log(error);
-        setError(true);
-      });
-    };
+    setErrorCode(ErrorCodes.ErrorWhileDeletingSignlePlan)
+    api.request({
+      method: 'DELETE',
+      url: `/plans/${id}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
+      console.log(response);
+      handleUpdate();
+    }).catch((error) => {
+      console.log(error);
+      setError(true);
+    });
   };
 
   const createUser = () => {
@@ -320,19 +201,9 @@ const UsersList = () => {
     let postUserPassword = "";
     let postUserUsername = random;
     let postUserRole = 'felhasznalo';
-    let postUserManager = '644549704ecd9939a53a';
-    let postUserPerms = [];
-    let postUserMaxdays = 0;
+    let postUserManager = user.id;
+    let postUserMaxdays = 30;
     let postUserDaysLeft = -1;
-
-    let perms = [
-      'felhasznalo.request',
-      'felhasznalo.delete_request',
-    ];
-
-    let felhasznaloPreset = [perms[0], perms[1]];
-
-    if (postUserRole == 'felhasznalo') postUserPerms = felhasznaloPreset;
 
     postUserDaysLeft = postUserMaxdays;
     setLoadingUsers(true);
@@ -341,7 +212,7 @@ const UsersList = () => {
 
     api.request({
       method: 'POST',
-      url: `/users/register`,
+      url: `/register`,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -350,8 +221,7 @@ const UsersList = () => {
         password: postUserPassword,
         name: postUserUsername,
         role: postUserRole,
-        manager: postUserManager,
-        perms: postUserPerms,
+        managerId: postUserManager,
         maxDays: postUserMaxdays,
         remainingDays: postUserDaysLeft
       }
@@ -372,7 +242,6 @@ const UsersList = () => {
     let postUserUsername = userUsername;
     let postUserRole = userRole;
     let postUserManager = userManager;
-    let postUserPerms = [];
     let postUserMaxdays = userMaxdays;
     let postUserDaysLeft = userDaysLeft;
 
@@ -390,31 +259,6 @@ const UsersList = () => {
       return;
     }
 
-    let perms = [
-      'felhasznalo.request',
-      'felhasznalo.delete_request',
-      'irodavezeto.approve',
-      'irpdavezeto.reject',
-      'irodavezeto.message_send',
-      'irodavezeto.list_own',
-      'jegyzo.edit_user',
-      'jegyzo.create_user',
-      'jegyzo.delete_user',
-      'jegyzo.list_all',
-      'hr.edit_user_perms',
-      'hr.edit_user_current_state'
-    ];
-
-    let felhasznaloPreset = [perms[0], perms[1]];
-    let irodavezetoPreset = [...felhasznaloPreset, perms[2], perms[3], perms[4], perms[5]];
-    let jegyzoPreset = [...felhasznaloPreset, perms[2], perms[3], perms[4], perms[6], perms[7], perms[8], perms[9]];
-    let adminPreset = [...jegyzoPreset, perms[10], perms[11]];
-
-    if (postUserRole == 'felhasznalo') postUserPerms = felhasznaloPreset;
-    if (postUserRole == 'irodavezeto') postUserPerms = irodavezetoPreset;
-    if (postUserRole == 'jegyzo') postUserPerms = jegyzoPreset;
-    if (postUserRole == 'admin') postUserPerms = adminPreset;
-
     if (userPassword != userPassword2) {
       console.log('passwords dont match');
       setErrorCode(ErrorCodes.PasswordsNotMatch);
@@ -431,7 +275,7 @@ const UsersList = () => {
 
     postUserPassword = userPassword;
 
-    if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserPerms == '' || postUserMaxdays < 0 || postUserDaysLeft < -1) {
+    if (postUserEmail == '' || postUserPassword == '' || postUserUsername == '' || postUserRole == '' || postUserManager == '' || postUserMaxdays < 0 || postUserDaysLeft < -1) {
       setErrorCode(ErrorCodes.EmptyField);
       setError(true);
       return;
@@ -454,7 +298,7 @@ const UsersList = () => {
     setErrorCode(ErrorCodes.FailedToRegisterUser);
       api.request({
         method: 'POST',
-        url: `/users/register`,
+        url: `/register`,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -463,10 +307,9 @@ const UsersList = () => {
           password: postUserPassword,
           name: postUserUsername,
           role: postUserRole,
-          manager: postUserManager,
-          perms: postUserPerms,
-          maxdays: postUserMaxdays,
-          remainingdays: postUserDaysLeft
+          managerId: postUserManager,
+          maxDays: postUserMaxdays,
+          remainingDays: postUserDaysLeft
         }
       }).then((response) => {
         if (response.status != 200) setError(true);
@@ -499,7 +342,7 @@ const UsersList = () => {
     setErrorCode(ErrorCodes.FailedToSendMessage);
     api.request({
       method: 'POST',
-      url: `/uzenetek/create`,
+      url: `/messages`,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -527,51 +370,29 @@ const UsersList = () => {
 
   const handleDownload = (e, uid) => {
     e.preventDefault();
-    // let options = {
-    //   method: 'GET',
-    //   url: `${url}/plans/${uid}/excel`,
-    //   headers: {
-    //     'submittingId': user.$id
-    //   },
-    //   responseType: 'arraybuffer'
-    // }
+    let options = {
+      method: 'GET',
+      url: `/plans/${uid}/excel`,
+      responseType: 'blob'
+    }
 
-    // axios.request(options).then((response) => {
-    //   // Download the returned excel file from buffer
-    //   const url = window.URL.createObjectURL(new Blob([response.data]));
-    //   const link = document.createElement('a');
-    //   link.href = url;
-    //   let date = new Date();
-    //   let dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + '_' + date.getHours() + '-' + date.getMinutes() + '-' + date.getSeconds();
-    //   let filename = unameForDownload.replace(/ /g, '-') + '_' + dateString + '.xlsx';
-    //   link.setAttribute('download', filename);
-    //   document.body.appendChild(link);
+    api.request(options).then((response) => {
+      // Download the returned excel file from buffer
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      let date = new Date();
+      let dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + '_' + date.getHours() + '-' + date.getMinutes() + '-' + date.getSeconds();
+      let filename = unameForDownload.replace(/ /g, '-') + '_' + dateString + '.xlsx';
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
 
-    //   link.click();
-    //   link.remove();
+      link.click();
+      link.remove();
 
-    //   console.log(response);
-    // }).catch((error) => { console.log(error) });
-    // functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_PLANS_EXCEL, JSON.stringify({
-    //   submittingId: user.$id,
-    //   userId: uid
-    // })).then((response) => {
-    //   let data = JSON.parse(response.responseBody);
-    //   console.log(data);
-    //   let fileId = data.fileId;
-
-    //   const res = storage.getFileDownload(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
-    //   console.log(res);
-    //   const link = document.createElement('a');
-    //   link.href = res.href;
-    //   document.body.appendChild(link);
-
-    //   link.click();
-    //   link.remove();
-
-    //   storage.deleteFile(import.meta.env.VITE_APPWRITE_BUCKET_DOWNLOADS, fileId);
-    //   setLoadingDownload(false);
-    // }).catch((error) => { console.log(error) });
+      console.log(response);
+      setLoadingDownload(false);
+    }).catch((error) => { console.log(error) });
   }
 
   return (
@@ -759,7 +580,7 @@ const UsersList = () => {
         {(user?.role == "admin" && new Date().getMonth() == 2) && (
           <Button type='button' className='btn-danger mt-2 flex-grow-1 mx-1 shadow-smc' onClick={(e) => {
             e.preventDefault();
-            if (window.confirm("Biztos szeretné az összes felhasználó szabadság tervét törölni?")) deletePlan('reset');
+            if (window.confirm("Biztos szeretné az összes felhasználó szabadság tervét törölni?")) deletePlan('all');
           }}>Szabadság tervek törlése</Button>
         )}
       </div>
@@ -786,30 +607,30 @@ const UsersList = () => {
                                                   ? 'table-danger' 
                                                   : u.onLeave 
                                                   ? 'table-warning' 
-                                                  : (u.managerId == user.id && user.prefs.perms.includes("jegyzo.list_all")) 
+                                                  : (u.managerId == user.id && (user.role == 'jegyzo' || user.role == 'admin')) 
                                                   ? 'table-secondary' 
                                                   : ''}`}>
                 <td>{index + 1}</td>
-                <td>{u.name}</td>
+                <td>{u.name} [{u.role == "admin" ? "A" : u.role == "jegyzo" ? "J" : u.role == "irodavezeto" ? "I" : "F"}]</td>
                 <td>{u.email}</td>
                 <td>
                   <Button type='button' className='btn-primary my-1 mx-1 shadow-smc' onClick={(e) => {
                     e.preventDefault();
                     setLoading(true);
-                    handleView(u.$id, u.name);
+                    handleView(u.id, u.name);
                   }}>
                     Naptár
                   </Button>
                   {user?.role != "felhasznalo" && (
                     <Button type='button' className='btn-success my-1 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
-                      sendMessage(u.$id);
+                      sendMessage(u.id);
                     }}>Üzenet küzdés</Button>
                   )}
                   {(user?.role == "jegyzo" || user?.role == "admin") && (
                     <Button type='button' className='btn-warning my-1 mx-1 shadow-smc' onClick={(e) => {
                       e.preventDefault();
-                      editUser(u.$id);
+                      editUser(u.id);
                     }}>Szerkesztés</Button>
                   )}
                   {(user?.role == "admin" || user?.role == "jegyzo") && (
@@ -818,14 +639,16 @@ const UsersList = () => {
                       {user?.role == "admin" && (
                         <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
                           e.preventDefault();
-                          if (window.confirm("A törléssel a teljes éves szabadság terv törlésre kerül a felhasználó számára!\nBiztos szeretné a felhasználó szabadság tervét törölni?")) deletePlan(u.$id);
+                          if (window.confirm("A törléssel a teljes éves szabadság terv törlésre kerül a felhasználó számára!\nBiztos szeretné a felhasználó szabadság tervét törölni?")) deletePlan(u.id);
                         }}>Terv</Button>
                       )}
                       {(user?.role == "jegyzo" || user?.role == "admin") && (
                         <Button type='button' className='btn-danger btn-border-left' onClick={(e) => {
                           e.preventDefault();
-                          setLoadingUsers(true);
-                          if (window.confirm("Biztos szeretné a felhasználót törölni?")) deleteUser(u.$id);
+                          if (window.confirm("Biztos szeretné a felhasználót törölni?")) {
+                            setLoadingUsers(true);
+                            deleteUser(u.id);
+                          }
                         }}>Felhasználó</Button>
                       )}
                     </ButtonGroup>
@@ -840,7 +663,7 @@ const UsersList = () => {
                           return document.execCommand('copy', true, text);
                         }
                       }
-                      copyToClipboard(u.$id);
+                      copyToClipboard(u.id);
                     }}></Button>
                   )} */}
                 </td>

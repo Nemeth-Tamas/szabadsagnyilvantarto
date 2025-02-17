@@ -1,15 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
-import { selectUser } from '../store/userSlice';
+import { selectToken, selectUser } from '../store/userSlice';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { Button, Card, Form, Spinner, Table, ToastContainer } from 'react-bootstrap';
-import axios from 'axios';
 import { BetterErrorToast, ErrorCodes, SuccessToast } from '../components';
+import api from '../api';
 
 const UserEdit = () => {
   const { theme } = useContext(ThemeContext);
-  const user = useSelector(selectUser)
+  const user = useSelector(selectUser);
+  const token = useSelector(selectToken);
   const navigate = useNavigate();
   const devmode = import.meta.env.VITE_DEVMODE;
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,6 @@ const UserEdit = () => {
   const [loadingRemainingDays, setLoadingRemainingDays] = useState(false);
   const [loadingMaxDays, setLoadingMaxDays] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
-  const url = import.meta.env.VITE_BACKEND_BASEADDRESS;
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const search = useLocation().search;
@@ -40,22 +40,6 @@ const UserEdit = () => {
   const [remainingDays, setRemainingDays] = useState(0);
   const [maxDays, setMaxDays] = useState(0);
 
-  // All possible perms
-  const permsList = [
-    'felhasznalo.request',
-    'felhasznalo.delete_request',
-    'irodavezeto.approve',
-    'irpdavezeto.reject',
-    'irodavezeto.message_send',
-    'irodavezeto.list_own',
-    'jegyzo.edit_user',
-    'jegyzo.create_user',
-    'jegyzo.delete_user',
-    'jegyzo.list_all',
-    'hr.edit_user_perms',
-    'hr.edit_user_current_state'
-  ];
-
   const roles = [
     'felhasznalo',
     'irodavezeto',
@@ -64,141 +48,77 @@ const UserEdit = () => {
   ]
 
   useEffect(() => {
-    if (!user?.prefs?.perms?.includes('hr.edit_user_perms')) {
-      navigate('/');
+    if (!token || !user.role == 'admin') {
+      navigate('/login');
     }
 
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETUSERBYID, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID
-    })).then((response) => {
-
-      let data = JSON.parse(response.responseBody);
-      if (data.status == 'fail') setError(true);
+    api.request({
+      method: 'GET',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
+        console.log(response);
 
-      setName(data.user.name);
-      setUsername(data.user.email);
-      setManager(data.user.prefs.manager);
-      setPerms(data.user.prefs.perms);
-      setRole(data.user.prefs.role);
-      setRemainingDays(data.user.prefs.remainingdays);
-      setMaxDays(data.user.prefs.maxdays);
-      setSick(data.user.prefs.sick);
+      setName(response.data.name);
+      setUsername(response.data.email);
+      setManager(response.data.managerId);
+      setRole(response.data.role);
+      setRemainingDays(response.data.remainingDays);
+      setMaxDays(response.data.maxDays);
+      setSick(response.data.sick);
 
-      functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GETTAPPENZ, JSON.stringify({
-        submittingId: user.$id,
-        userId: userID
-      }))
-      .then((response2) => {
-        let data = JSON.parse(response2.responseBody);
-        if (devmode)
-          console.log(data);
-        if (data.status == 'fail') setError(true);
+      api.request({
+        method: 'GET',
+        url: `/tappenz/${userID}`,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }).then((response2) => {
+        if (response.status != 200) setError(true);
+        if (devmode) console.log("RESPONSE2:", response2);
+
+        let data = response2.data;
         let tableData = [];
-        data.tappenz.forEach((item) => {
-          tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
-        });
+        data.forEach((item) => {
+          tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.id]);
+        })
         setSickTableData(tableData);
+
         setLoading(false);
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.log(error);
         setError(true);
       });
+      
     }).catch((error) => {
       console.log(error);
       setError(true);
     });
-
-    // axios.request({
-    //   method: 'GET',
-    //   url: `${url}/users/${userID}`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setName(response.data.user.name);
-    //   setUsername(response.data.user.email);
-    //   setManager(response.data.user.prefs.manager);
-    //   setPerms(response.data.user.prefs.perms);
-    //   setRole(response.data.user.prefs.role);
-    //   setRemainingDays(response.data.user.prefs.remainingdays);
-    //   setMaxDays(response.data.user.prefs.maxdays);
-    //   setSick(response.data.user.prefs.sick);
-
-    //   // axios.request({
-    //   //   method: 'GET',
-    //   //   url: `${url}/tappenz/${userID}`,
-    //   //   headers: {
-    //   //     'Content-Type': 'application/json',
-    //   //     'submittingId': user.$id
-    //   //   }
-    //   // }).then((response2) => {
-    //   //   if (response.status != 200) setError(true);
-    //   //   if (response.data.status == 'fail') setError(true);
-
-    //   //   let data = response2.data.tappenz
-    //   //   let tableData = [];
-    //   //   data.forEach((item) => {
-    //   //     tableData.push([item.startDate.split('T')[0], item.endDate != null ? item.endDate.split('T')[0] : '-', item.$id]);
-    //   //   })
-    //   //   setSickTableData(tableData);
-
-    //   //   setLoading(false);
-    //   // }).catch((error) => {
-    //   //   console.log(error);
-    //   //   setError(true);
-    //   // });
-      
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
   }, []);
 
   const updateName = (e) => {
     e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/name`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     name: name
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERENAME, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      newUserName: name
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
+    api.request({
+      method: 'PATCH',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        name: name
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
-      setLoadingName(false);
+        console.log(response);
+
       setSuccess(true);
+      setLoadingName(false);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -207,119 +127,47 @@ const UserEdit = () => {
   const updateManager = (e) => {
     e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/manager`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     manager: manager
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      manager: manager
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
+    api.request({
+      method: 'PATCH',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        managerId: manager
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
+        console.log(response);
+
+      setSuccess(true);
       setLoadingManager(false);
-      setSuccess(true);
     }).catch((error) => {
       console.log(error);
       setError(true);
     });
   }
-  const updatePerms = (e) => {
-    e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/perms`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     perms: perms
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      perms: perms
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
-      if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
-      setLoadingPerms(false);
-      setSuccess(true);
-    }).catch((error) => {
-      console.log(error);
-      setError(true);
-    });
-  }
   const updateRole = (e) => {
     e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/role`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     role: role
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      role: role
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
+    api.request({
+      method: 'PATCH',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        role: role
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
-      setLoadingRole(false);
+        console.log(response);
+
       setSuccess(true);
+      setLoadingRole(false);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -328,38 +176,22 @@ const UserEdit = () => {
   const updateRemainingDays = (e) => {
     e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/remainingdays`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     remainingdays: remainingDays
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      remainingdays: remainingDays
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
+    api.request({
+      method: 'PATCH',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        remainingDays: remainingDays
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
-      setLoadingRemainingDays(false);
+        console.log(response);
+
       setSuccess(true);
+      setLoadingRemainingDays(false);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -368,38 +200,22 @@ const UserEdit = () => {
   const updateMaxDays = (e) => {
     e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/maxdays`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     maxdays: maxDays
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSERPREFS, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      maxdays: maxDays
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
+    api.request({
+      method: 'PATCH',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        maxDays: maxDays
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
-      setLoadingMaxDays(false);
+        console.log(response);
+
       setSuccess(true);
+      setLoadingMaxDays(false);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -409,39 +225,22 @@ const UserEdit = () => {
   const updateUsername = (e) => {
     e.preventDefault();
 
-    // axios.request({
-    //   method: 'PATCH',
-    //   url: `${url}/users/${userID}/email`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     email: username
-    //   }
-    // }).then((response) => {
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
-    //   if (devmode)
-    //     console.log(response);
-
-    //   setSuccess(true);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_EDITUSEREMAIL, JSON.stringify({
-      submittingId: user.$id,
-      userId: userID,
-      newUserEmail: username
-    })).then((response) => {
-      let data = JSON.parse(response.responseBody);
+    api.request({
+      method: 'PATCH',
+      url: `/user/${userID}`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        email: username
+      }
+    }).then((response) => {
+      if (response.status != 200) setError(true);
       if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
-      setLoadingEmail(false);
+        console.log(response);
+
       setSuccess(true);
+      setLoadingEmail(false);
     }).catch((error) => {
       console.log(error);
       setError(true);
@@ -453,43 +252,24 @@ const UserEdit = () => {
 
     if (devmode)
       console.log(sick);
-    // axios.request({
-    //   method: 'POST',
-    //   url: `${url}/tappenz/start`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     userId: userID,
-    //     start: sickDate
-    //   }
-    // }).then((response) => {
-    //   console.log(response);
-    //   if (response.status != 200) {setError(true); return};
-    //   if (response.data.status == 'fail') {setError(true); return};
+    api.request({
+      method: 'POST',
+      url: `/tappenz/start`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        userId: userID,
+        start: sickDate
+      }
+    }).then((response) => {
+      console.log(response);
+      if (response.status != 200) {setError(true); return};
 
-    //   setSuccess(true);
-    //   navigate(0);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_START, JSON.stringify({
-      userId: userID,
-      start: sickDate,
-      submittingId: user.$id
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
       setSuccess(true);
       setLoadingButton(false);
       navigate(0);
-    })
-    .catch((error) => {
+    }).catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -497,43 +277,24 @@ const UserEdit = () => {
 
   const updateSickEnd = (e) => {
     e.preventDefault();
-    // axios.request({
-    //   method: 'POST',
-    //   url: `${url}/tappenz/end`,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'submittingId': user.$id
-    //   },
-    //   data: {
-    //     userId: userID,
-    //     end: sickDate
-    //   }
-    // }).then((response) => {
-    //   console.log(response);
-    //   if (response.status != 200) setError(true);
-    //   if (response.data.status == 'fail') setError(true);
+    api.request({
+      method: 'POST',
+      url: `/tappenz/end`,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: {
+        userId: userID,
+        end: sickDate
+      }
+    }).then((response) => {
+      console.log(response);
+      if (response.status != 200) setError(true);
 
-    //   setSuccess(true);
-    //   navigate(0);
-    // }).catch((error) => {
-    //   console.log(error);
-    //   setError(true);
-    // });
-    functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_END, JSON.stringify({
-      userId: userID,
-      end: sickDate,
-      submittingId: user.$id
-    }))
-    .then((response) => {
-      let data = JSON.parse(response.responseBody);
-      if (devmode)
-        console.log(data);
-      if (data.status == 'fail') setError(true);
       setSuccess(true);
       setLoadingButton(false);
       navigate(0);
-    })
-    .catch((error) => {
+    }).catch((error) => {
       console.log(error);
       setError(true);
     });
@@ -630,39 +391,21 @@ const UserEdit = () => {
                             <td><Button variant="danger" onClick={(e) => {
                               e.preventDefault();
                               setLoadingButton2(true);
-                              // axios.request({
-                              //   method: 'DELETE',
-                              //   url: `${url}/tappenz/${item[2]}`,
-                              //   headers: {
-                              //     'Content-Type': 'application/json',
-                              //     'submittingId': user.$id
-                              //   }
-                              // }).then((response) => {
-                              //   if (devmode)
-                              //     console.log(response);
-                              //   if (response.status != 200) setError(true);
-                              //   if (response.data.status == 'fail') setError(true);
-
-                              //   setSuccess(true);
-                              //   navigate(0);
-                              // }).catch((error) => {
-                              //   console.log(error);
-                              //   setError(true);
-                              // });
-                              functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_TAPPENZ_DELETE, JSON.stringify({
-                                submittingId: user.$id,
-                                deleteId: item[2]
-                              }))
-                              .then((response) => {
-                                let data = JSON.parse(response.responseBody);
+                              api.request({
+                                method: 'DELETE',
+                                url: `/tappenz/${item[2]}`,
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                }
+                              }).then((response) => {
                                 if (devmode)
-                                  console.log(data);
-                                if (data.status == 'fail') setError(true);
+                                  console.log(response);
+                                if (response.status != 200) setError(true);
+
                                 setSuccess(true);
                                 setLoadingButton2(false);
                                 navigate(0);
-                              })
-                              .catch((error) => {
+                              }).catch((error) => {
                                 console.log(error);
                                 setError(true);
                               });
@@ -684,10 +427,6 @@ const UserEdit = () => {
                       </tbody>
                     </Table>
                   </div>
-                  {/* <div style={{ display: 'flex', alignContent: 'center', alignItems: 'center' }}>
-                    <Form.Check type="checkbox" label="Táppénz" checked={sick} onChange={(e) => setSick(e.target.checked)} />
-                    <Button variant="success" onClick={updateSick} className='ms-1'>Mentés</Button>
-                  </div> */}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="formBasicName">
                   <Form.Label>Név</Form.Label>
@@ -753,21 +492,6 @@ const UserEdit = () => {
                       Mentés</Button>
                   </div>
                 </Form.Group>
-                {/* <Form.Group className="mb-3">
-                  <Form.Label>Jogosultságok</Form.Label>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {permsList.map((perm, index) => (
-                      <Form.Check key={index} type="checkbox" label={perm} checked={perms.includes(perm)} onChange={(e) => {
-                        if (perms.includes(perm)) {
-                          setPerms(perms.filter((p) => p != perm));
-                        } else {
-                          setPerms([...perms, perm]);
-                        }
-                      }} />
-                    ))}
-                    <Button variant="success" onClick={updatePerms} className='ms-1'>Mentés</Button>
-                  </div>
-                </Form.Group> */}
                 <Form.Group className="mb-3">
                   <Form.Label>Szerepkör</Form.Label>
                   <div style={{ display: 'flex' }}>

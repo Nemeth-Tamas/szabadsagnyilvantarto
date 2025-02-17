@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Alert, Button, Card, Container, Form } from 'react-bootstrap';
 import { ThemeContext } from '../ThemeContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, setUser } from '../store/userSlice';
 import api from '../api';
@@ -15,7 +15,7 @@ const LoginComponent = () => {
   const user = useSelector(selectUser);
 
   useEffect(() => {
-    if (user && user.$id) {
+    if (user && user.id) {
       navigate('/');
     }
   }, [user, navigate]);

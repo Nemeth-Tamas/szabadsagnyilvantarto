@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import CustomCalendarDisplayOnly from './CustomCalendarDisplayOnly'
 import { useSelector } from 'react-redux';
 import { selectToken, selectUser } from '../store/userSlice';
-import axios from 'axios';
 import { Container } from 'react-bootstrap';
+import api from '../api';
 
 const ModalCalendar = ({ id, userData = null, userStats = null, tappenz = null }) => {
   const user = useSelector(selectUser);
@@ -21,22 +21,22 @@ const ModalCalendar = ({ id, userData = null, userStats = null, tappenz = null }
   ]));
 
   useEffect(() => {
-    console.log(id);
+    console.log("ID:", id);
+    console.log("USERDATA:", userData);
     
-    // send axios request to get days taken by user with id
+    // send api request to get days taken by user with id
     if (userData == null && id != null) {
       const options = {
         method: 'GET',
-        url: `${url}/requests/${id}`,
+        url: `/requests/${id}`,
         headers: {
           'Content-Type': 'application/json',
-          'authorization': `Bearer ${token}`
         }
       }
   
-      axios.request(options)
+      api.request(options)
         .then((response) => {
-          console.log(response);
+          console.log("RESPONSE: ", response);
           let takenDays = new Map();
           if (response.status == 500) throw new Error('Failed to get taken days');
           else setShouldShow(true);
@@ -48,15 +48,14 @@ const ModalCalendar = ({ id, userData = null, userStats = null, tappenz = null }
           setLoading(false);
         })
         .catch((error) => {
-          console.log(error);
+          console.log("ERROR:", error);
           setError(true);
         });
     } else if (userData != null && userData != undefined && id == null) {
-      console.log("HERE",userStats);
       let takenDays = new Map();
       userData.forEach((document) => {
         document.dates.forEach(date => {
-          takenDays.set(date, document.type);
+          takenDays.set(date.split("T")[0], document.type);
         })
       })
       setTakenDays(takenDays);
@@ -85,9 +84,9 @@ const ModalCalendar = ({ id, userData = null, userStats = null, tappenz = null }
       <div>
         {userStats && 
           <div>
-            <span>Összes szabadság: {userStats?.maxdays}</span><br />
-            <span>Rendelkezésre álló szabadságok: {userStats?.remainingdays}</span><br />
-            <span>Igénybevett szabadságok: {userStats?.maxdays - userStats?.remainingdays}</span><br />
+            <span>Összes szabadság: {userStats?.maxDays}</span><br />
+            <span>Rendelkezésre álló szabadságok: {userStats?.remainingDays}</span><br />
+            <span>Igénybevett szabadságok: {userStats?.maxDays - userStats?.remainingDays}</span><br />
             <span>Az évben használt összes táppénz: {tappenz}</span>
           </div>
         }

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Button, Container, Form, Nav, Navbar } from 'react-bootstrap';
-import { LinkContainer } from 'react-router-bootstrap';
+import { LinkContainer } from './LinkContainer';
 import { ThemeContext } from '../ThemeContext';
 import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,24 +18,27 @@ const MainNavbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   handleUpdate();
-  // }, []);
+  useEffect(() => {
+    handleUpdate();
+    const interval = setInterval(handleUpdate, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // const handleUpdate = () => {
-  //   functions.createExecution(import.meta.env.VITE_APPWRITE_FUNCTIONS_GET_KERELMEK, JSON.stringify({
-  //     submittingId: user.$id
-  //   }))
-  //   .then((response) => {
-  //     let data = JSON.parse(response.responseBody);
-  //     console.log(data);
-  //     setKerelmekCount(data.kerelmek.total);
-  //     setLoading(false);
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //   });
-  // };
+  const handleUpdate = () => {
+    api.request({
+      method: 'GET',
+      url: `/requests/toapprove`,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then((response) => {
+      console.log(response.data);
+      setKerelmekCount(response.data);
+      setLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
+  };
 
   const switchTheme = () => {
     if (theme == "light") {

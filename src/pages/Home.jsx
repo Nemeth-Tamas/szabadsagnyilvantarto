@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Badge, Button, ButtonGroup, Card, Col, Container, FormSelect, Modal, Row, Spinner, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap'
 import { ThemeContext } from '../ThemeContext';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser, selectToken, selectUser, setUser } from '../store/userSlice';
+import { useNavigate } from 'react-router';
+import { useSelector } from 'react-redux';
+import { selectToken, selectUser, setUser } from '../store/userSlice';
 import { CustomCalendar, CustomCalendarDisplayOnly, RemainingIndicator, SuccessToast, BetterErrorToast, ErrorCodes, PasswordField } from '../components';
 import api from '../api';
+import { store } from '../store/store';
+import { jwtDecode } from 'jwt-decode';
 
 const Home = () => {
   const { theme } = useContext(ThemeContext);
@@ -175,13 +177,26 @@ const Home = () => {
           setError(true);
           return;
         }
+        let count = 0;
         response.data.forEach((document) => {
           document.dates.forEach((date) => {
             takenDaysCurrent.set(date.split("T")[0], document.type)
+            count++;
           });
         });
         
         setTakenDays(takenDaysCurrent);
+        let userCurrentCount = user?.maxDays - user?.remainingDays;
+
+        if (count != userCurrentCount) {
+          // refresh the acceess token
+          api.request({
+            method: 'POST',
+            url: '/refresh-token'
+          }).then((request) => {
+            store.dispatch(setUser({ token: request.data.accessToken, user: jwtDecode(request.data.accessToken) }));
+          });
+        }
 
         // TODO: this needs further testing
         let today = new Date();

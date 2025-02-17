@@ -190,7 +190,7 @@ const UserRequests = () => {
                         return document.execCommand('copy', true, text);
                       }
                     }
-                    copyToClipboard(item.$id);
+                    copyToClipboard(item.id);
                   }}></Button> */}
                   </td>
               </tr>
