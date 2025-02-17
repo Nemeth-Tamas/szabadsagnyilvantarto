@@ -19,12 +19,14 @@ const MainNavbar = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (user?.role == "felhasznalo") return;
     handleUpdate();
     const interval = setInterval(handleUpdate, 15 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   const handleUpdate = () => {
+    if (!token || !user.id) return;
     api.request({
       method: 'GET',
       url: `/requests/toapprove`,
