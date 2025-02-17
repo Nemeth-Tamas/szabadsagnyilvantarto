@@ -55,11 +55,11 @@ const LoginComponent = () => {
           <Form onSubmit={handleSubmit}>
             <Form.Group className='mb-3' controlId='formUsername'>
               <Form.Label>Felhasználónév</Form.Label>
-              <Form.Control type='username' placeholder='Felhasználónév' value='demoadmin@celldomolk.hivatal' />
+              <Form.Control type='username' placeholder='Felhasználónév' />
             </Form.Group>
             <Form.Group className='mb-3' controlId='formPassword'>
               <Form.Label>Jelszó</Form.Label>
-              <Form.Control type='password' placeholder='Jelszó' value='testpass' />
+              <Form.Control type='password' placeholder='Jelszó' />
             </Form.Group>
             <Button variant='primary' type='subbmit' className='shadow-smc'>
               Bejelentkezés
