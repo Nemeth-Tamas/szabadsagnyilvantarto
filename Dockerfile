@@ -14,9 +14,6 @@ FROM nginx:alpine
 
 COPY --from=0 /app/dist /usr/share/nginx/html
 
-ENV VITE_APPWRITE_ENDPOINT=${VITE_APPWRITE_ENDPOINT}
-ENV VITE_APPWRITE_PROJECT=${VITE_APPWRITE_PROJECT}
-
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
