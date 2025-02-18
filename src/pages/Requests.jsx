@@ -3,9 +3,10 @@ import { ThemeContext } from '../ThemeContext'
 import { useSelector } from 'react-redux';
 import { selectToken, selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
-import { Button, Modal, Spinner, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
+import { Button, Form, InputGroup, Modal, Spinner, Table, Toast, ToastBody, ToastContainer, ToastHeader } from 'react-bootstrap';
 import { BetterErrorToast, ErrorCodes, ModalCalendar } from '../components';
 import api from '../api';
+import Fuse from 'fuse.js';
 
 const Requests = () => {
   const { theme } = useContext(ThemeContext);
@@ -22,6 +23,9 @@ const Requests = () => {
   const [loading, setLoading] = useState(true);
   const [loadingButton, setLoadingButton] = useState(false);
   const navigate = useNavigate();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
 
   const handleCalendarClose = () => { setShowCalendar(false); setCalendarId(null); }
   const handleRejectClose = () => { setShowRejectMessage(false); setRejectId(null); setRejectMessage(''); }
@@ -87,6 +91,7 @@ const Requests = () => {
           return item;
         });
         setData(response.data);
+        setFilteredData(response.data);
         setPage(1);
         setLoading(false);
       })
@@ -166,6 +171,26 @@ const Requests = () => {
       });
   };
 
+  useEffect(() => {
+    handleSearch(searchQuery);
+  }, [data]);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredData(data);
+      return;
+    }
+
+    const fuse = new Fuse(data, {
+      keys: ['submittingName', 'dates', 'managerName'],
+      threshold: 0.3
+    });
+
+    const result = fuse.search(query);
+    setFilteredData(result.map((item) => item.item));
+  };
+
   return (
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
@@ -235,6 +260,17 @@ const Requests = () => {
           {(data.length == 0 && !loadingButton) ? "Nincs több kérelem" : "Több kérelem betöltése"}
         </Button>
         ) : <></>}
+        <InputGroup className='mt-2 ms-2' style={{ width: '25%' }}>
+          <InputGroup.Text id='search-icon'>🔍</InputGroup.Text>
+            <Form.Control 
+              type='text' 
+              placeholder='Keresés' 
+              aria-label='Keresés' 
+              aria-describedby='search-icon' 
+              value={searchQuery} 
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+        </InputGroup>
       </div>
       {loading ? (
         <Spinner animation="border" role="status">
@@ -253,7 +289,7 @@ const Requests = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
+            {filteredData.map((item, index) => (
               <tr key={item.id}>
                 <td><strong>{item.submittingName}</strong></td>
                 <td>{item.dates.join(", ")}</td>

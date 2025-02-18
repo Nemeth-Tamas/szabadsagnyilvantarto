@@ -3,9 +3,10 @@ import { ThemeContext } from '../ThemeContext';
 import { useSelector } from 'react-redux';
 import { selectToken, selectUser } from '../store/userSlice';
 import { useNavigate } from 'react-router';
-import { Button, ButtonGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
+import { Button, ButtonGroup, Form, InputGroup, Modal, Spinner, Table, ToastContainer } from 'react-bootstrap';
 import { ModalCalendar, SuccessToast, ErrorCodes, BetterErrorToast, LoadingCircle } from '../components';
 import api from '../api';
+import Fuse from 'fuse.js';
 
 const UsersList = () => {
   const { theme } = useContext(ThemeContext);
@@ -41,6 +42,9 @@ const UsersList = () => {
   const [userPerms, setUserPerms] = useState([]);
   const [userMaxdays, setUserMaxdays] = useState(0);
   const [userDaysLeft, setUserDaysLeft] = useState(-1);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
 
   const handleCalendarClose = () => { setShowCalendar(false); setUserCalendarData(null); setUserCalendarStats(null); }
   const handleCreateUserClose = () => {
@@ -79,6 +83,7 @@ const UsersList = () => {
         if (response.status != 200) setError(true);
         console.log(response);
         setData(response.data);
+        setFilteredData(response.data);
         setLoadingUsers(false);
       })
       .catch((error) => {
@@ -395,6 +400,22 @@ const UsersList = () => {
     }).catch((error) => { console.log(error) });
   }
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredData(data);
+      return;
+    }
+
+    const fuse = new Fuse(data, {
+      keys: ['name', 'role'],
+      threshold: 0.3
+    });
+
+    const result = fuse.search(query);
+    setFilteredData(result.map(({ item }) => item));
+  }
+
   return (
     <>
       <Modal variant={theme} show={showCalendar} onHide={handleCalendarClose} centered>
@@ -598,11 +619,26 @@ const UsersList = () => {
               <th style={{ maxWidth: "3%", width: "3%" }}>#</th>
               <th style={{ maxWidth: "30%", width: "30%" }}>Név</th>
               <th style={{ maxWidth: "30%", width: "30%" }}>Felhasználónév</th>
-              <th style={{ maxWidth: "36%", width: "36%" }}>Műveletek</th>
+              <th style={{ maxWidth: "36%", width: "36%" }}>
+                <div className='d-flex justify-content-between align-items-center'>
+                  <span>Műveletek</span>
+                  <InputGroup style={{ maxWidth: "50%"}}>
+                    <InputGroup.Text id='search-icon'>🔍</InputGroup.Text>
+                    <Form.Control 
+                      type='text' 
+                      placeholder='Keresés' 
+                      aria-label='Keresés' 
+                      aria-describedby='search-icon' 
+                      value={searchQuery} 
+                      onChange={(e) => handleSearch(e.target.value)}
+                    />
+                  </InputGroup>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {data.map((u, index) => (
+            {filteredData.map((u, index) => (
               <tr key={u.id + index} className={`${u.sick 
                                                   ? 'table-danger' 
                                                   : u.onLeave 
