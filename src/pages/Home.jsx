@@ -59,7 +59,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (!token) {
+    if (!user.id) {
       navigate('/login');
     }
 

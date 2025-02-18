@@ -21,7 +21,7 @@ const MainNavbar = () => {
   useEffect(() => {
     if (user?.role == "felhasznalo") return;
     handleUpdate();
-    const interval = setInterval(handleUpdate, 15 * 60 * 1000);
+    const interval = setInterval(handleUpdate, 1 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -91,12 +91,12 @@ const MainNavbar = () => {
                   <Nav.Link>Saját kérelmek</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {user?.role != "felhasznalo" ? (
+              {token && user?.role != "felhasznalo" ? (
                 <LinkContainer to="/requests">
                   <Nav.Link>Kérelmek {(kerelmekCount != 0 && !loading) ? `(${kerelmekCount})` : ""}</Nav.Link>
                 </LinkContainer>
               ) : (<></>)}
-              {user?.role != "felhasznalo" ? (
+              {token && user?.role != "felhasznalo" ? (
                 <LinkContainer to="/users">
                   <Nav.Link>Felhasználók</Nav.Link>
                 </LinkContainer>
