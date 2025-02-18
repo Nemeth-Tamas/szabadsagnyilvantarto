@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser, selectToken, selectUser } from '../store/userSlice';
 import api from '../api';
+import { useWebSocket } from '../WebSocketContext';
 
 
 const MainNavbar = () => {
@@ -17,30 +18,42 @@ const MainNavbar = () => {
   const token = useSelector(selectToken);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const {messages, isConnected} = useWebSocket();
 
   useEffect(() => {
-    if (user?.role == "felhasznalo") return;
-    handleUpdate();
-    const interval = setInterval(handleUpdate, 1 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+    if (user?.role !== "felhasznalo" && messages.length > 0) {
+      const message = messages[messages.length - 1];
 
-  const handleUpdate = () => {
-    if (!token || !user.id) return;
-    api.request({
-      method: 'GET',
-      url: `/requests/toapprove`,
-      headers: {
-        'Content-Type': 'application/json',
+      switch (message.type) {
+        case "kerelmek":
+          setKerelmekCount(message.count || 0);
+          setLoading(false);
+          break;
+        case "error":
+          console.error('WebScoket error:', message);
+          break;
+        default:
+          break;
       }
-    }).then((response) => {
-      console.log(response.data);
-      setKerelmekCount(response.data);
-      setLoading(false);
-    }).catch((error) => {
-      console.log(error);
-    });
-  };
+    }
+  }, [messages, user?.role]);
+
+  // const handleUpdate = () => {
+  //   if (!token || !user.id) return;
+  //   api.request({
+  //     method: 'GET',
+  //     url: `/requests/toapprove`,
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     }
+  //   }).then((response) => {
+  //     console.log(response.data);
+  //     setKerelmekCount(response.data);
+  //     setLoading(false);
+  //   }).catch((error) => {
+  //     console.log(error);
+  //   });
+  // };
 
   const switchTheme = () => {
     if (theme == "light") {
