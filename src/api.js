@@ -9,6 +9,17 @@ const api = axios.create({
   withCredentials: true, // Ensure cookies are sent with requests
 });
 
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function onRefreshed(token) {
+  refreshSubscribers.map((callback) => callback(token));
+}
+
+function addRefreshSubscriber(callback) {
+  refreshSubscribers.push(callback);
+}
+
 // Request interceptor to add the access token to headers
 api.interceptors.request.use(
   (config) => {
@@ -31,16 +42,31 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     if (error.response.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addRefreshSubscriber((token) => {
+            originalRequest.headers['Authorization'] = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_BASEADDRESS}/refresh-token`, {}, { withCredentials: true });
         store.dispatch(setUser({ token: data.accessToken, user: jwtDecode(data.accessToken) })); // Update the token and user in Redux store
-        originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
+        api.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+        isRefreshing = false;
+        onRefreshed(data.accessToken);
+        refreshSubscribers = [];
         return api(originalRequest);
       } catch (refreshError) {
         console.error('Refresh token failed', refreshError);
         store.dispatch(logoutUser()); // Dispatch logout action if refresh token fails
         window.location.href = '/login'; // Redirect to login page
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
