@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { selectToken } from "./store/userSlice";
+import { selectToken, setUser } from "./store/userSlice";
+import api from "./api";
+import { store } from "./store/store";
+import { jwtDecode } from 'jwt-decode';
 
 const WebSocketContext = createContext(null);
 
@@ -14,8 +17,25 @@ export const WebScoketProvider = ({ children }) => {
   const reconnectDelay = 5000;
   const maxMessages = 100;
 
-  const connect = () => {
-    if (token && reconnectAttempts.current < maxReconnectAttempts) {
+  const refreshToken = async () => {
+    try {
+      const { data } = await api.post(`${backend}/refresh-token`);
+      store.dispatch(setUser({ token: data.accessToken, user: jwtDecode(data.accessToken)}));
+      return data.accessToken;
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      store.dispatch(logoutUser());
+      window.location.href = '/login';
+      return null;
+    }
+  }
+
+  const connect = async () => {
+    let currentToken = token;
+    if (!currentToken) {
+      currentToken = await refreshToken();
+    }
+    if (currentToken && reconnectAttempts.current < maxReconnectAttempts) {
       if (ws && ws.readyState === WebSocket.OPEN) {
         console.log('WebSocket already connected');
         return;
