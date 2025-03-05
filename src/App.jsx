@@ -34,7 +34,7 @@ function App() {
             setNotificationsList(prev => [...prev, message]);
             break;
           case "error":
-            console.error('WebScoket error:', message);
+            console.error('WebSocket error:', message);
             break;
           default:
             break;
@@ -44,7 +44,15 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <ToastContainer className='p-3' position='top-start' style={{ zIndex: 9999 }}>
+      {/* <ToastContainer className='p-3' position='top-start' style={{ zIndex: 9999 }}> */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        zIndex: 9999,
+        padding: '1rem',
+      }}>
         {notificationsList.map((notification, index) => (
           <Toast key={index} show={true} onClose={() => {
             setNotificationsList(notificationsList.filter((item, i) => i !== index));
@@ -58,7 +66,8 @@ function App() {
             </Toast.Body>
           </Toast>
         ))}
-      </ToastContainer>
+      </div>
+      {/* </ToastContainer> */}
       <Container fluid className={theme == "dark" ? "bg-semidark" : ""} style={{ minHeight: '100vh' }}>
         <BrowserRouter>
           <MainNavbar />

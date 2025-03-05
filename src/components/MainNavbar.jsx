@@ -30,7 +30,7 @@ const MainNavbar = () => {
           setLoading(false);
           break;
         case "error":
-          console.error('WebScoket error:', message);
+          console.error('WebSocket error:', message);
           break;
         default:
           break;
