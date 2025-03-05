@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { selectToken, setUser } from "./store/userSlice";
+import { selectToken, setUser, logoutUser } from "./store/userSlice";
 import api from "./api";
 import { store } from "./store/store";
 import { jwtDecode } from 'jwt-decode';
@@ -18,6 +18,8 @@ export const WebScoketProvider = ({ children }) => {
   const maxMessages = 100;
 
   const refreshToken = async () => {
+    const isLoginPage = window.location.pathname === "/login";
+    if (isLoginPage) return null;
     try {
       const { data } = await api.post(`${backend}/refresh-token`);
       store.dispatch(setUser({ token: data.accessToken, user: jwtDecode(data.accessToken)}));
