@@ -337,10 +337,19 @@ const Home = () => {
           </div>
         </Modal.Footer>
       </Modal>
-      <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} >
+      {/* <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} > */}
+      <div style={{
+        position: 'fixed',
+        top: '60px',
+        right: '20px',
+        width: '300px',
+        zIndex: 9999,
+        pointerEvents: 'none'
+      }}>
         <BetterErrorToast error={error} setError={setError} errorText={errorCode} />
         <SuccessToast success={success} setSuccess={setSuccess} title='Elküldve' text='Kérelmét sikeresen elküldtük.' />
-      </ToastContainer>
+      </div>
+      {/* </ToastContainer> */}
       <Container className='h-100 d-flex flex-column'>
         {(currentlyOnLeave || sick) && <Row className='flex-grow-1'>
           <Col className='col-12'>

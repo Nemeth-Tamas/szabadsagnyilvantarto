@@ -58,9 +58,18 @@ const Messages = () => {
 
   return (
     <>
-      <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} >
+      {/* <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} > */}
+      <div style={{
+        position: 'fixed',
+        top: '60px',
+        right: '20px',
+        width: '300px',
+        zIndex: 9999,
+        pointerEvents: 'none'
+      }}>
         <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.ServerErrorFailedToLoadMessages} />
-      </ToastContainer>
+      </div>
+      {/* </ToastContainer> */}
 
       <div className='w-100 d-flex'>
         <Button type='button' className='btn-success mt-2 flex-grow-1 shadow-smc' onClick={(e) => {

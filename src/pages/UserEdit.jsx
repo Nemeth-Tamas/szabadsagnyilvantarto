@@ -302,10 +302,19 @@ const UserEdit = () => {
 
   return (
     <>
-      <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} >
+      {/* <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} > */}
+      <div style={{
+        position: 'fixed',
+        top: '60px',
+        right: '20px',
+        width: '300px',
+        zIndex: 9999,
+        pointerEvents: 'none'
+      }}>
         <BetterErrorToast error={error} setError={setError} errorText={ErrorCodes.FailedToLoadUser} />
         <SuccessToast success={success} setSuccess={setSuccess} title="Mentve" text={`Adat sikeresen mentve.`} />
-      </ToastContainer>
+      </div>
+      {/* </ToastContainer> */}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className='mt-2 pb-2'>
         <Card bg={theme} text={theme == "light" ? "dark" : "light"} className={theme == "light" ? "shadow-light" : "shadow-dark"}>
           {loading && (

@@ -135,9 +135,18 @@ const Plan = () => {
 
   return (
     <>
-      <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} >
+      {/* <ToastContainer className='p-3' position='top-end' style={{ zIndex: 9999 }} > */}
+      <div style={{
+        position: 'fixed',
+        top: '60px',
+        right: '20px',
+        width: '300px',
+        zIndex: 9999,
+        pointerEvents: 'none'
+      }}>
         <BetterErrorToast error={error} setError={setError} errorText={errorCode} />
-      </ToastContainer>
+      </div>
+      {/* </ToastContainer> */}
       <Container className='h-100 d-flex flex-column'>
         <Row className='mt-5 w-100'>
           <h3 className='mx-auto'>Összes szabadság: {user?.maxDays}</h3>

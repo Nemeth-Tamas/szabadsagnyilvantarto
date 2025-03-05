@@ -47,11 +47,11 @@ function App() {
       {/* <ToastContainer className='p-3' position='top-start' style={{ zIndex: 9999 }}> */}
       <div style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
+        top: '60px',
+        left: '20px',
+        width: '300px',
         zIndex: 9999,
-        padding: '1rem',
+        pointerEvents: 'none'
       }}>
         {notificationsList.map((notification, index) => (
           <Toast key={index} show={true} onClose={() => {
